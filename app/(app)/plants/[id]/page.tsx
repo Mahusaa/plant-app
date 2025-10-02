@@ -120,11 +120,12 @@ function generateTimeSeriesData(days: number, baseValue: number, variance: numbe
 }
 
 interface PlantDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function PlantDetailPage({ params }: PlantDetailPageProps) {
-  const plantData = await getPlantData(params.id);
+  const { id } = await params;
+  const plantData = await getPlantData(id);
 
   // Generate mock time series data for each stat
   const timeSeriesData = {
