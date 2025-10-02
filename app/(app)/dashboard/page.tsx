@@ -1,50 +1,40 @@
 import Link from "next/link";
-import { ScanSearch, ScanHeart } from "lucide-react";
+import { ScanSearch, ScanHeart, Bell, Settings } from "lucide-react";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+
 
 function Header() {
   return (
-    <header className="flex items-center gap-4 mb-2">
-      <div className="relative">
-        <img
-          src="/palm.png"
-          alt="profile"
-          className="h-12 w-12 rounded-full object-cover border-2 border-green-100 shadow-sm"
-        />
-        <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white"></div>
+    <header className="flex items-center justify-between mb-6">
+      <div className="flex items-center gap-4">
+        <div className="relative">
+          <Avatar className="h-12 w-12 border-2 border-green-100 shadow-sm">
+            <AvatarImage src="/palm.png" alt="profile" />
+          </Avatar>
+          <div className="absolute -bottom-1 -right-1 h-4 w-4 bg-green-400 rounded-full border-2 border-white"></div>
+        </div>
+        <div className="flex-1">
+          <div className="text-sm text-slate-500 font-medium">Good morning</div>
+          <div className="text-lg font-semibold text-slate-800">Alex</div>
+          <div className="text-xs text-slate-400 mt-0.5">Let's check on your plants today</div>
+        </div>
       </div>
-      <div className="flex-1">
-        <div className="text-sm text-slate-500 font-medium">Good morning</div>
-        <div className="text-lg font-semibold text-slate-800">Alex</div>
-        <div className="text-xs text-slate-400 mt-0.5">Let's check on your plants today</div>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-gray-100">
+          <Bell className="h-5 w-5 text-gray-600" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full hover:bg-gray-100">
+          <Settings className="h-5 w-5 text-gray-600" />
+        </Button>
       </div>
     </header>
   );
 }
 
-function StatusCard() {
-  return (
-    <div className="rounded-2xl border border-amber-100 p-5 bg-gradient-to-br from-amber-50 to-orange-50 shadow-sm relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-20 h-20 bg-amber-100 rounded-full opacity-30 transform translate-x-8 -translate-y-8"></div>
-      <div className="relative">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-          <div className="text-sm font-medium text-amber-700">Plant Alert</div>
-        </div>
-        <div className="font-semibold text-amber-900 mb-3">Your daisy needs attention</div>
-        <div className="text-sm text-amber-700 mb-4">Showing signs of dehydration</div>
-        <Link
-          href="/plants/1"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
-        >
-          <span>View Details</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 function ActionCard({ title, href, color = "blue" }: { title: string; href: string; color?: "blue" | "purple" }) {
   const colorClasses = {
@@ -63,23 +53,22 @@ function ActionCard({ title, href, color = "blue" }: { title: string; href: stri
   };
 
   return (
-    <Link
-      href={href}
-      className={`group rounded-2xl border p-5 bg-gradient-to-br ${colorClasses[color]} shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1 relative overflow-hidden`}
-    >
-      <div className="absolute top-0 right-0 w-12 h-12 bg-white bg-opacity-20 rounded-full transform translate-x-6 -translate-y-6"></div>
-      <div className="relative">
-        <div className={`w-10 h-10 rounded-xl ${color === 'blue' ? 'bg-blue-100' : 'bg-purple-100'} flex items-center justify-center`}>
-          {title === "Identify Plant" ? (
-            <ScanSearch className={`w-8 h-8 ${iconClasses[color]}`}>
-            </ScanSearch>
-          ) : (
-            <ScanHeart className={`w-8 h-8 ${iconClasses[color]}`} >
-            </ScanHeart>
-          )}
+    <Link href={href}>
+      <Card className={`group rounded-2xl border p-5 bg-gradient-to-br ${colorClasses[color]} shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1 relative overflow-hidden`}>
+        <div className="absolute top-0 right-0 w-12 h-12 bg-white bg-opacity-20 rounded-full transform translate-x-6 -translate-y-6"></div>
+        <div className="relative">
+          <div className={`w-10 h-10 rounded-xl ${color === 'blue' ? 'bg-blue-100' : 'bg-purple-100'} flex items-center justify-center`}>
+            {title === "Identify Plant" ? (
+              <ScanSearch className={`w-8 h-8 ${iconClasses[color]}`}>
+              </ScanSearch>
+            ) : (
+              <ScanHeart className={`w-8 h-8 ${iconClasses[color]}`} >
+              </ScanHeart>
+            )}
+          </div>
+          <div className={`font-semibold text-base ${textClasses[color]}`}>{title}</div>
         </div>
-        <div className={`font-semibold text-base ${textClasses[color]}`}>{title}</div>
-      </div>
+      </Card>
     </Link>
   );
 }
@@ -129,7 +118,6 @@ export default function DashboardPage() {
   return (
     <main className="p-6 space-y-8 bg-gradient-to-b from-slate-50 to-white min-h-screen">
       <Header />
-
       <div className="grid grid-cols-2 gap-4">
         <ActionCard title="Identify Plant" href="/identify" color="blue" />
         <ActionCard title="Health Check" href="/health" color="purple" />
@@ -138,9 +126,7 @@ export default function DashboardPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-slate-800">Your Plants</h2>
-          <div className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-            3 plants
-          </div>
+          <Badge variant="secondary">3 plants</Badge>
         </div>
         <div className="space-y-3">
           <PlantItem />

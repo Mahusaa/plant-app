@@ -2,19 +2,31 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { healthAdviceAction } from "@/actions/health";
+import { useStreamableValue } from "@ai-sdk/rsc";
+
+function Streamed({ data }: { data: any }) {
+  const [streamedText] = useStreamableValue<string>(data);
+  return <div className="p-2 rounded-md bg-secondary whitespace-pre-wrap text-sm">{streamedText ?? ""}</div>;
+}
 
 export default function AIPlantPage() {
   const [prompt, setPrompt] = useState("");
-  const [messages, setMessages] = useState<string[]>([]);
+  const [items, setItems] = useState<{ you: string; ai?: any }[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  function ask() {
-    if (!prompt.trim()) return;
-    setMessages((m) => [
-      ...m,
-      `You: ${prompt}`,
-      "AI: Based on current metrics, water today and move to indirect light.",
-    ]);
+  async function ask() {
+    const p = prompt.trim();
+    if (!p) return;
     setPrompt("");
+    setItems((m) => [{ you: p }, ...m]);
+    setLoading(true);
+    try {
+      const res = await healthAdviceAction({ prompt: p });
+      setItems((m) => [{ you: p, ai: res.output }, ...m.slice(1)]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -26,10 +38,14 @@ export default function AIPlantPage() {
 
       <div className="rounded-xl border p-4 bg-card space-y-2 shadow-sm">
         <div className="text-sm text-muted-foreground">AI Output</div>
-        <div className="space-y-2 text-sm">
-          {messages.map((m, i) => (
-            <div key={i} className="p-2 rounded-md bg-secondary">{m}</div>
+        <div className="space-y-2">
+          {items.map((m, i) => (
+            <div key={i} className="space-y-2">
+              <div className="text-sm"><span className="text-muted-foreground">You:</span> {m.you}</div>
+              {m.ai ? <Streamed data={m.ai} /> : null}
+            </div>
           ))}
+          {loading && <div className="text-sm text-muted-foreground">Thinking...</div>}
         </div>
       </div>
 
@@ -53,5 +69,4 @@ export default function AIPlantPage() {
     </main>
   );
 }
-
 
