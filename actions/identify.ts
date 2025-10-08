@@ -19,16 +19,31 @@ export async function identifyPlantAction({
     throw new Error("Missing OPENAI_API_KEY");
   }
 
-  const system = `You are a plant identification assistant. Given a plant photo, identify the plant and return structured care data.
-- Always populate luxThresholdRange with realistic values for the identified plant.
-- Always populate waterNeeded with amountMl and frequencyDays for typical indoor pot size.
-- Use 'lux' as the unit for light thresholds.
-- Add a few concise careNotes and lightNotes if helpful.
-- If unsure, choose the most probable species and include a lower confidence value.`;
+  const system = `You are an expert plant identification assistant for IoT plant monitoring systems. Given a plant photo, identify the plant and return comprehensive care data.
+
+IMPORTANT GUIDELINES:
+- Provide the full scientific name (e.g., "Monstera Deliciosa")
+- Include 2-3 common names if available
+- Set confidence level based on image quality and distinctiveness
+
+SENSOR THRESHOLDS (Critical for IoT monitoring):
+- lightRequirements: min/max lux values for optimal growth (e.g., indoor: 1000-2500, outdoor: 2000-5000)
+- soilMoistureRequirements: min/max % for soil moisture sensor (typical: 40-60% for most plants)
+- waterLevelRequirements: min/max % for auto-watering reservoir (typical: 50-80%)
+- Include ideal values when possible
+
+CARE INFORMATION:
+- wateringSchedule: realistic ml per session and frequency in days for medium pot (15-20cm)
+- careNotes: 5-7 practical, actionable care tips
+- Include common health issues to watch for
+- Specify if indoor, outdoor, or both
+- Include toxicity information if relevant
+
+Be specific with numbers for thresholds - they will be used for automated monitoring and alerts.`;
 
   const userText =
     prompt ??
-    "Identify this plant and return structured data for light (lux range) and watering (ml and days).";
+    "Identify this plant and provide complete IoT monitoring specifications including light, soil moisture, and water level thresholds, along with care instructions.";
 
   const { object } = await generateObject({
     model: openai("gpt-5-mini"),

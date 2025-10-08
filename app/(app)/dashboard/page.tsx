@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ScanSearch, ScanHeart, Bell, Settings } from "lucide-react";
+import { Bell, Settings } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -36,39 +36,54 @@ function Header() {
 }
 
 
-function ActionCard({ title, href, color = "blue" }: { title: string; href: string; color?: "blue" | "purple" }) {
+function ActionCard({
+  title,
+  emoji,
+  href,
+  color = "blue"
+}: {
+  title: string;
+  emoji: string;
+  href: string;
+  color?: "blue" | "purple"
+}) {
   const colorClasses = {
-    blue: "from-blue-100 to-cyan-50 border-blue-300 hover:from-blue-200 hover:to-cyan-200",
-    purple: "from-purple-100 to-pink-50 border-purple-300 hover:from-purple-200 hover:to-pink-200"
+    blue: {
+      gradient: "from-blue-50 to-cyan-50",
+      border: "border-blue-200",
+      hover: "hover:border-blue-300 hover:shadow-sm",
+      text: "text-blue-900"
+    },
+    purple: {
+      gradient: "from-purple-50 to-pink-50",
+      border: "border-purple-200",
+      hover: "hover:border-purple-300 hover:shadow-sm",
+      text: "text-purple-900"
+    }
   };
 
-  const iconClasses = {
-    blue: "text-blue-500",
-    purple: "text-purple-500"
-  };
-
-  const textClasses = {
-    blue: "text-blue-900",
-    purple: "text-purple-900"
-  };
+  const style = colorClasses[color];
 
   return (
-    <Link href={href}>
-      <Card className={`group rounded-2xl border p-5 bg-gradient-to-br ${colorClasses[color]} shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1 relative overflow-hidden`}>
-        <div className="absolute top-0 right-0 w-12 h-12 bg-white bg-opacity-20 rounded-full transform translate-x-6 -translate-y-6"></div>
-        <div className="relative">
-          <div className={`w-10 h-10 rounded-xl ${color === 'blue' ? 'bg-blue-100' : 'bg-purple-100'} flex items-center justify-center`}>
-            {title === "Identify Plant" ? (
-              <ScanSearch className={`w-8 h-8 ${iconClasses[color]}`}>
-              </ScanSearch>
-            ) : (
-              <ScanHeart className={`w-8 h-8 ${iconClasses[color]}`} >
-              </ScanHeart>
-            )}
+    <Link href={href} className="block">
+      <div className={`group rounded-xl border py-3 px-3 bg-gradient-to-br ${style.gradient} ${style.border} ${style.hover} transition-all duration-200 active:scale-95 relative overflow-hidden`}>
+        <div className="relative flex items-center gap-2.5">
+          {/* Emoji Icon */}
+          <div className="text-2xl group-hover:scale-110 transition-transform duration-200">
+            {emoji}
           </div>
-          <div className={`font-semibold text-base ${textClasses[color]}`}>{title}</div>
+
+          {/* Title */}
+          <h3 className={`font-semibold text-sm ${style.text} flex-1`}>
+            {title}
+          </h3>
+
+          {/* Arrow */}
+          <svg className={`w-4 h-4 ${style.text} opacity-40 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
         </div>
-      </Card>
+      </div>
     </Link>
   );
 }
@@ -116,17 +131,38 @@ function PlantItem() {
 
 export default function DashboardPage() {
   return (
-    <main className="p-6 space-y-8 bg-gradient-to-b from-slate-50 to-white min-h-screen">
+    <main className="p-6 space-y-6 bg-gradient-to-b from-slate-50 to-white min-h-screen">
       <Header />
-      <div className="grid grid-cols-2 gap-4">
-        <ActionCard title="Identify Plant" href="/identify" color="blue" />
-        <ActionCard title="Health Check" href="/health" color="purple" />
-      </div>
 
+      {/* Quick Actions - Compact */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <h2 className="text-base font-semibold text-slate-700">Quick Actions</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <ActionCard
+            title="Identify Plant"
+            emoji="🔍"
+            href="/identify"
+            color="blue"
+          />
+          <ActionCard
+            title="Health Check"
+            emoji="💚"
+            href="/health"
+            color="purple"
+          />
+        </div>
+      </section>
+
+      {/* Your Plants */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800">Your Plants</h2>
-          <Badge variant="secondary">3 plants</Badge>
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold text-slate-800">Your Plants</h2>
+            <span className="text-xl">🌱</span>
+          </div>
+          <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">3 plants</Badge>
         </div>
         <div className="space-y-3">
           <PlantItem />
