@@ -1,0 +1,44 @@
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash E:/home/despro/.claude/statusline-command.sh"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -c (New-Object Media.SoundPlayer 'C:\\Windows\\Media\\Windows Notify Email.wav').PlaySync()"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -c (New-Object Media.SoundPlayer 'C:\\Windows\\Media\\done.wav').PlaySync()"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -c (New-Object Media.SoundPlayer 'C:\\Windows\\Media\\confir.wav').PlaySync()"
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash:powershell"
+    ]
+  }
+}

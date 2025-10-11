@@ -9,31 +9,6 @@ export default function Onboarding() {
   return (
     <main className="min-h-dvh bg-gradient-to-b from-slate-50 to-white flex flex-col">
       {step === 1 && (
-        <section className="flex-1 flex flex-col items-center justify-center text-center gap-6 px-6">
-          {/* Decorative background */}
-          <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute left-1/2 top-[15%] h-80 w-80 -translate-x-1/2 rounded-full bg-gradient-to-br from-green-200/30 to-emerald-100/30 blur-3xl" />
-            <div className="absolute right-[-10%] bottom-[20%] h-64 w-64 rounded-full bg-gradient-to-br from-blue-200/20 to-cyan-100/20 blur-3xl" />
-          </div>
-
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-green-100 to-emerald-50 border-2 border-green-300 flex items-center justify-center shadow-lg">
-            <span className="text-4xl">🌱</span>
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold text-slate-800 [font-family:var(--font-instrument-serif)]">Plant Care</h1>
-            <p className="text-sm text-slate-600 max-w-xs">Smart IoT monitoring and AI insights to keep your plants thriving.</p>
-          </div>
-          <button
-            onClick={() => setStep(2)}
-            className="inline-flex h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold px-8 shadow-lg active:opacity-95"
-          >
-            <span className="mr-2">🚀</span>
-            Get Started
-          </button>
-        </section>
-      )}
-
-      {step === 2 && (
         <section className="flex-1 flex flex-col justify-center gap-6 px-6 max-w-lg mx-auto">
           <div className="space-y-3">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-50 border border-blue-300 flex items-center justify-center">
@@ -77,14 +52,14 @@ export default function Onboarding() {
           </div>
 
           <div className="flex gap-3 mt-4">
-            <button
-              onClick={() => setStep(1)}
-              className="h-11 px-6 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 text-slate-700 font-medium hover:from-slate-200 hover:to-slate-300"
+            <Link
+              href="/"
+              className="h-11 px-6 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 text-slate-700 font-medium hover:from-slate-200 hover:to-slate-300 flex items-center justify-center"
             >
               Back
-            </button>
+            </Link>
             <button
-              onClick={() => setStep(3)}
+              onClick={() => setStep(2)}
               className="flex-1 h-11 px-6 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg"
             >
               Continue
@@ -93,7 +68,7 @@ export default function Onboarding() {
         </section>
       )}
 
-      {step === 3 && (
+      {step === 2 && (
         <section className="flex-1 flex flex-col justify-center gap-6 px-6 max-w-lg mx-auto">
           <div className="space-y-3">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-100 to-emerald-50 border border-green-300 flex items-center justify-center">
@@ -154,8 +129,14 @@ export default function Onboarding() {
             <span className="text-green-600 underline">Privacy Policy</span>
           </div>
 
-          <div className="text-center">
-            <Link href="/dashboard" className="text-sm text-slate-600 hover:text-green-600 font-medium">
+          <div className="flex items-center justify-between text-sm">
+            <button
+              onClick={() => setStep(1)}
+              className="text-slate-600 hover:text-green-600 font-medium"
+            >
+              ← Back
+            </button>
+            <Link href="/dashboard" className="text-slate-600 hover:text-green-600 font-medium">
               Skip for now →
             </Link>
           </div>
