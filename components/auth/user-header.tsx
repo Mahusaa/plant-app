@@ -17,10 +17,17 @@ import { useRouter } from "next/navigation";
 export function UserHeader() {
   const { data: session, isPending } = useSession();
   const router = useRouter();
+  const [isSigningOut, setIsSigningOut] = React.useState(false);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
+    try {
+      setIsSigningOut(true);
+      await signOut();
+      router.push("/login");
+    } catch (err) {
+      console.error("Sign out error:", err);
+      setIsSigningOut(false);
+    }
   };
 
   if (isPending) {
@@ -100,8 +107,9 @@ export function UserHeader() {
             variant="outline"
             className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
             onClick={handleSignOut}
+            loading={isSigningOut}
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            {!isSigningOut && <LogOut className="mr-2 h-4 w-4" />}
             Sign out
           </Button>
         </div>

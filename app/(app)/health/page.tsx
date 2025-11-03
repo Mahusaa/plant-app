@@ -155,22 +155,13 @@ export default function HealthPage() {
               )}
             </div>
 
-            <Button 
-              onClick={onSubmit} 
-              disabled={loading}
+            <Button
+              onClick={onSubmit}
+              loading={loading}
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-6 py-3 rounded-xl"
             >
-              {loading ? (
-                <>
-                  <span className="mr-2">🤔</span>
-                  Analyzing...
-                </>
-              ) : (
-                <>
-                  <span className="mr-2">💡</span>
-                  Get Health Advice
-                </>
-              )}
+              {!loading && <span className="mr-2">💡</span>}
+              Get Health Advice
             </Button>
           </div>
 

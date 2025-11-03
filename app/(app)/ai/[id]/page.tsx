@@ -5,6 +5,8 @@ import Link from "next/link";
 import { healthAdviceAction } from "@/actions/health";
 import { useStreamableValue } from "@ai-sdk/rsc";
 import type { StreamableValue } from "@ai-sdk/rsc";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 function Streamed({ data }: { data: StreamableValue<string> }) {
   const [streamedText] = useStreamableValue<string>(data);
@@ -51,13 +53,21 @@ export default function AIPlantPage() {
       </div>
 
       <div className="flex gap-2">
-        <input
+        <Input
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Ask for care tips..."
-          className="flex-1 h-11 rounded-md border px-3 bg-background"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              ask();
+            }
+          }}
+          disabled={loading}
         />
-        <button onClick={ask} className="h-11 px-4 rounded-md bg-primary text-primary-foreground">Send</button>
+        <Button onClick={ask} loading={loading} size="lg">
+          Send
+        </Button>
       </div>
 
       <div className="rounded-xl border p-4 bg-card shadow-sm">

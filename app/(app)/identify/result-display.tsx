@@ -1,18 +1,50 @@
 "use client";
 
+import { useState } from "react";
 import { type IdentifyResult } from "@/lib/ai-schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface ResultDisplayProps {
   result: IdentifyResult;
+  imagePreview?: string | null;
 }
 
-export function ResultDisplay({ result }: ResultDisplayProps) {
+export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
+  const [showImage, setShowImage] = useState(false);
+
   return (
-    <section className="space-y-6">
+    <section className="space-y-4 pb-6">
+      {/* Collapsible Image Preview */}
+      {imagePreview && (
+        <Card className="shadow-sm border-0 bg-gradient-to-br from-white to-slate-50/30">
+          <CardContent className="p-3">
+            <button
+              onClick={() => setShowImage(!showImage)}
+              className="w-full flex items-center justify-between text-sm font-medium text-slate-700 hover:text-slate-900 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <span>📸</span>
+                Captured Image
+              </span>
+              {showImage ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </button>
+            {showImage && (
+              <div className="mt-3 relative mx-auto max-w-xs">
+                <img
+                  src={imagePreview}
+                  alt="Captured plant"
+                  className="w-full rounded-xl border-2 border-green-300 shadow-sm"
+                />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="shadow-sm border-0 bg-gradient-to-br from-white to-green-50/30">
         <CardHeader className="py-4">
           <div className="flex flex-col gap-3">
@@ -21,22 +53,27 @@ export function ResultDisplay({ result }: ResultDisplayProps) {
                 <span className="text-2xl">{getMoodEmoji(result.confidence)}</span>
               </div>
               <div className="flex-1">
-                <CardTitle className="text-lg sm:text-xl flex items-center gap-2 text-slate-800">
-                  {result.speciesName}
+                <CardTitle className="text-xl sm:text-2xl text-slate-800 font-bold">
+                  {result.commonName}
                 </CardTitle>
-                {result.plantType && (
-                  <Badge variant="outline" className="mt-1 text-xs">
-                    {result.plantType} plant
-                  </Badge>
-                )}
-                {typeof result.confidence === "number" && (
-                  <Badge
-                    variant="secondary"
-                    className={`${getConfidenceBadgeClass(result.confidence)} font-semibold px-3 py-1 mt-1`}
-                  >
-                    {(result.confidence * 100).toFixed(0)}% match
-                  </Badge>
-                )}
+                <div className="text-sm text-slate-500 italic mt-1">
+                  {result.speciesName}
+                </div>
+                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                  {result.plantType && (
+                    <Badge variant="outline" className="text-xs">
+                      {result.plantType} plant
+                    </Badge>
+                  )}
+                  {typeof result.confidence === "number" && (
+                    <Badge
+                      variant="secondary"
+                      className={`${getConfidenceBadgeClass(result.confidence)} font-semibold px-3 py-1`}
+                    >
+                      {(result.confidence * 100).toFixed(0)}% match
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
             {typeof result.confidence === "number" && (
@@ -54,46 +91,39 @@ export function ResultDisplay({ result }: ResultDisplayProps) {
         <CardContent className="space-y-6 text-sm">
           {/* IoT Sensor Thresholds - Primary Info */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-              <span>📊</span>
+            <h3 className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+              <span className="text-sm">📊</span>
               IoT Monitoring Thresholds
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">☀️</span>
-                  <span className="text-xs text-yellow-700 font-medium">Light</span>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-3 text-center">
+                <div className="flex justify-center mb-1">
+                  <span className="text-2xl">☀️</span>
                 </div>
-                <div className="text-base font-bold text-yellow-900">
-                  {result.lightRequirements.min}–{result.lightRequirements.max} lux
+                <div className="text-sm font-bold text-yellow-900">
+                  {result.lightRequirements.min}–{result.lightRequirements.max}
                 </div>
-                {result.lightRequirements.ideal && (
-                  <div className="text-xs text-yellow-700 mt-1">Ideal: {result.lightRequirements.ideal} lux</div>
-                )}
+                <div className="text-xs text-yellow-700">lux</div>
               </div>
 
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">🌱</span>
-                  <span className="text-xs text-green-700 font-medium">Soil Moisture</span>
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3 text-center">
+                <div className="flex justify-center mb-1">
+                  <span className="text-2xl">🌱</span>
                 </div>
-                <div className="text-base font-bold text-green-900">
+                <div className="text-sm font-bold text-green-900">
                   {result.soilMoistureRequirements.min}–{result.soilMoistureRequirements.max}%
                 </div>
-                {result.soilMoistureRequirements.ideal && (
-                  <div className="text-xs text-green-700 mt-1">Ideal: {result.soilMoistureRequirements.ideal}%</div>
-                )}
+                <div className="text-xs text-green-700">moisture</div>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">💧</span>
-                  <span className="text-xs text-blue-700 font-medium">Water Level</span>
+              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-3 text-center">
+                <div className="flex justify-center mb-1">
+                  <span className="text-2xl">💧</span>
                 </div>
-                <div className="text-base font-bold text-blue-900">
+                <div className="text-sm font-bold text-blue-900">
                   {result.waterLevelRequirements.min}–{result.waterLevelRequirements.max}%
                 </div>
-                <div className="text-xs text-blue-700 mt-1">Reservoir</div>
+                <div className="text-xs text-blue-700">reservoir</div>
               </div>
             </div>
           </div>
@@ -256,25 +286,6 @@ export function ResultDisplay({ result }: ResultDisplayProps) {
 
             {/* Info Tab */}
             <TabsContent value="info" className="space-y-4 pt-4">
-              {result.commonNames?.length ? (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-slate-600 font-medium">
-                    <span>🏷️</span>
-                    <span>Common Names</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {result.commonNames.map((name: string, i: number) => (
-                      <span
-                        key={i}
-                        className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-slate-100 to-slate-200 border border-slate-300 text-slate-700 font-medium"
-                      >
-                        {name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
               <div className="grid grid-cols-2 gap-3">
                 {result.growthRate && (
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">

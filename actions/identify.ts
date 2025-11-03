@@ -21,8 +21,8 @@ export async function identifyPlantAction({
   const system = `You are an expert plant identification assistant for IoT plant monitoring systems. Given a plant photo, identify the plant and return comprehensive care data.
 
 IMPORTANT GUIDELINES:
-- Provide the full scientific name (e.g., "Monstera Deliciosa")
-- Include 2-3 common names if available
+- Provide the scientific name in proper botanical format (e.g., "Monstera deliciosa")
+- Provide the primary common name in Indonesian language (e.g., "Janda Bolong" for Monstera)
 - Set confidence level based on image quality and distinctiveness
 
 SENSOR THRESHOLDS (Critical for IoT monitoring):
@@ -33,7 +33,7 @@ SENSOR THRESHOLDS (Critical for IoT monitoring):
 
 CARE INFORMATION:
 - wateringSchedule: realistic ml per session and frequency in days for medium pot (15-20cm)
-- careNotes: 5-7 practical, actionable care tips
+- careNotes: max 3 practical, actionable care tips
 - Include common health issues to watch for
 - Specify if indoor, outdoor, or both
 - Include toxicity information if relevant

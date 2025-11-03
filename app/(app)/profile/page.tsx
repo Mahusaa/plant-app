@@ -5,7 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Camera } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
@@ -16,8 +16,15 @@ export default function ProfilePage() {
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.push("/login");
+    }
+  }, [isPending, session, router]);
 
   if (isPending) {
     return (
@@ -28,7 +35,6 @@ export default function ProfilePage() {
   }
 
   if (!session?.user) {
-    router.push("/login");
     return null;
   }
 
@@ -89,8 +95,14 @@ export default function ProfilePage() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
+    try {
+      setIsSigningOut(true);
+      await signOut();
+      router.push("/login");
+    } catch (err) {
+      console.error("Sign out error:", err);
+      setIsSigningOut(false);
+    }
   };
 
   return (
@@ -233,8 +245,12 @@ export default function ProfilePage() {
               </svg>
             </button>
 
-            <Button className="w-full bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 hover:from-red-100 hover:to-pink-100 text-red-700 font-semibold">
-              <span className="text-lg mr-2">🚪</span>
+            <Button
+              onClick={handleSignOut}
+              loading={isSigningOut}
+              className="w-full bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 hover:from-red-100 hover:to-pink-100 text-red-700 font-semibold"
+            >
+              {!isSigningOut && <span className="text-lg mr-2">🚪</span>}
               Sign Out
             </Button>
           </div>

@@ -3,8 +3,8 @@ import { z } from "zod/v4";
 // Comprehensive plant identification schema for IoT monitoring
 export const IdentifySchema = z.object({
   // Basic identification
-  speciesName: z.string().describe("Full scientific name (e.g., Monstera Deliciosa)"),
-  commonNames: z.array(z.string()).optional().describe("Common names (e.g., Swiss Cheese Plant)"),
+  speciesName: z.string().describe("Full scientific name (e.g., Monstera deliciosa)"),
+  commonName: z.string().describe("Primary common name (e.g., Swiss Cheese Plant)"),
   confidence: z.number().min(0).max(1).optional().describe("Model confidence 0-1"),
 
   // Plant category/type
@@ -55,8 +55,8 @@ export const IdentifySchema = z.object({
   }).optional().describe("Humidity preferences"),
 
   // Care tips and notes
-  careNotes: z.array(z.string()).describe("General care tips (max 5-7 tips)"),
-  healthIssues: z.array(z.string()).optional().describe("Common health issues to watch for"),
+  careNotes: z.array(z.string()).describe("General care tips (max 2 most important tips tips)"),
+  healthIssues: z.array(z.string()).optional().describe("Common health issues to watch for max 2"),
 
   // Growing information
   growthRate: z.enum(["slow", "moderate", "fast"]).optional().describe("Plant growth rate"),

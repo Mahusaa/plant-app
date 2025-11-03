@@ -47,7 +47,7 @@ export default function Home() {
 
       <div className="text-xs text-slate-500">
         Already have an account?{" "}
-        <Link href="/onboarding" className="text-green-600 font-medium hover:underline">
+        <Link href="/login" className="text-green-600 font-medium hover:underline">
           Sign in
         </Link>
       </div>
