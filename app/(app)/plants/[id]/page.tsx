@@ -1,6 +1,5 @@
 // app/plants/[id]/page.tsx (Server Component)
-import Link from "next/link";
-import { PlantDetailClient } from "./plant-detail-client";
+import { PlantDetailWrapper } from "./plant-detail-wrapper";
 import type { IdentifyResult } from "@/lib/ai-schema";
 
 // Types for IoT sensor data
@@ -160,73 +159,7 @@ interface PlantDetailPageProps {
 
 export default async function PlantDetailPage({ params }: PlantDetailPageProps) {
   const { id } = await params;
-  const plantData = await getPlantData(id);
+  const mockPlantData = await getPlantData(id);
 
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24">
-      <div className="mx-auto max-w-md">
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/plants" className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
-              <svg className="h-5 w-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </Link>
-            <div className="text-center">
-              <h1 className="text-base font-semibold text-slate-900">Plant Monitor</h1>
-            </div>
-            <div className="w-9" /> {/* Spacer for centering */}
-          </div>
-        </header>
-
-        {/* Plant Profile - Compact */}
-        <section className="px-6 py-4 space-y-3">
-          <div className="flex gap-3 items-center">
-            {/* Plant Image */}
-            <div className="relative flex-shrink-0">
-              <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-sm">
-                <img
-                  src={plantData.image}
-                  alt={plantData.name}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
-                <span className="text-[10px]">✓</span>
-              </div>
-            </div>
-
-            {/* Plant Info */}
-            <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold text-slate-900 truncate">{plantData.name}</h2>
-              <p className="text-xs text-slate-600 italic truncate">{plantData.latinName}</p>
-            </div>
-          </div>
-
-          {/* Care Info - Compact */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-2">
-              <span className="text-lg">💧</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-blue-700 font-medium">Watering</p>
-                <p className="text-xs font-bold text-blue-900 truncate">{plantData.identifyData.wateringSchedule.amountMl}ml / {plantData.identifyData.wateringSchedule.frequencyDays}d</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-2">
-              <span className="text-lg">☀️</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] text-yellow-700 font-medium">Light Range</p>
-                <p className="text-xs font-bold text-yellow-900 truncate">{plantData.identifyData.lightRequirements.min}-{plantData.identifyData.lightRequirements.max} lux</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Client Component with all interactive features */}
-        <PlantDetailClient plantData={plantData} />
-      </div>
-    </main>
-  );
+  return <PlantDetailWrapper id={id} mockPlantData={mockPlantData} />;
 }

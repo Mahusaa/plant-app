@@ -4,15 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { healthAdviceAction } from "@/actions/health";
 import { useStreamableValue } from "@ai-sdk/rsc";
+import type { StreamableValue } from "@ai-sdk/rsc";
 
-function Streamed({ data }: { data: any }) {
+function Streamed({ data }: { data: StreamableValue<string> }) {
   const [streamedText] = useStreamableValue<string>(data);
   return <div className="p-2 rounded-md bg-secondary whitespace-pre-wrap text-sm">{streamedText ?? ""}</div>;
 }
 
 export default function AIPlantPage() {
   const [prompt, setPrompt] = useState("");
-  const [items, setItems] = useState<{ you: string; ai?: any }[]>([]);
+  const [items, setItems] = useState<{ you: string; ai?: StreamableValue<string> }[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function ask() {

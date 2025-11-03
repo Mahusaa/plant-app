@@ -36,7 +36,10 @@ export async function healthAdviceAction({
       : "";
 
     // Build content array for multimodal input
-    const content: any[] = [
+    const content: Array<
+      | { type: "text"; text: string }
+      | { type: "image"; image: string }
+    > = [
       {
         type: "text",
         text: `${prompt}${ctx}`,

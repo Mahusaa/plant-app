@@ -5,24 +5,43 @@ import { healthAdviceAction } from "@/actions/health";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import ImageCropModal from "@/components/image-crop-modal";
+import { readFileAsDataURL, formatFileSize } from "@/lib/image-utils";
 
 export const maxDuration = 30;
 
 export default function HealthPage() {
   const [prompt, setPrompt] = useState("");
   const [context, setContext] = useState("");
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [imageBase64, setImageBase64] = useState<string | undefined>(undefined);
+  const [imageSize, setImageSize] = useState<number | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
   const [generation, setGeneration] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
+  async function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImageBase64(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+
+    try {
+      const base64 = await readFileAsDataURL(file);
+      setOriginalImage(base64);
+      setShowCropModal(true);
+    } catch (err) {
+      console.error("Failed to load image:", err);
+    }
+  }
+
+  function handleCropComplete(croppedImage: string, size: number) {
+    setImageBase64(croppedImage);
+    setImageSize(size);
+    setShowCropModal(false);
+  }
+
+  function handleCropCancel() {
+    setShowCropModal(false);
+    setOriginalImage(null);
   }
 
   async function onSubmit() {
@@ -119,6 +138,11 @@ export default function HealthPage() {
                   <div className="text-sm text-slate-600 mb-2 flex items-center gap-2">
                     <span>🖼️</span>
                     <span>Uploaded Image</span>
+                    {imageSize && (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-lg">
+                        {formatFileSize(imageSize)}
+                      </span>
+                    )}
                   </div>
                   <div className="relative w-32 h-32 overflow-hidden rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
                     <img
@@ -167,6 +191,16 @@ export default function HealthPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Crop Modal */}
+      {originalImage && (
+        <ImageCropModal
+          open={showCropModal}
+          imageSrc={originalImage}
+          onClose={handleCropCancel}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </main>
   );
 }

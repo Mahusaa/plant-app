@@ -1,6 +1,5 @@
 "use server";
 
-import { z } from "zod";
 import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { IdentifySchema, type IdentifyResult } from "@/lib/ai-schema";

@@ -6,30 +6,47 @@ import { type IdentifyResult } from "@/lib/ai-schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ResultDisplay } from "./result-display";
+import ImageCropModal from "@/components/image-crop-modal";
+import { readFileAsDataURL, formatFileSize } from "@/lib/image-utils";
 
 export default function IdentifyPage() {
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageSize, setImageSize] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<IdentifyResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const readFileAsDataURL = (file: File) =>
-    new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const base64 = await readFileAsDataURL(file);
-    setImagePreview(base64);
-    setError(null);
-    setResult(null);
+
+    try {
+      const base64 = await readFileAsDataURL(file);
+      setOriginalImage(base64);
+      setShowCropModal(true);
+      setError(null);
+      setResult(null);
+    } catch (err) {
+      setError("Failed to load image. Please try again.");
+    }
+  };
+
+  const handleCropComplete = (croppedImage: string, size: number) => {
+    setImagePreview(croppedImage);
+    setImageSize(size);
+    setShowCropModal(false);
+    setScanning(false);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropModal(false);
+    setOriginalImage(null);
+    setScanning(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const startScanning = () => {
@@ -44,6 +61,8 @@ export default function IdentifyPage() {
 
   const clearSelection = () => {
     setImagePreview(null);
+    setOriginalImage(null);
+    setImageSize(null);
     setResult(null);
     setError(null);
     setScanning(false);
@@ -170,10 +189,12 @@ export default function IdentifyPage() {
                       <span className="text-white text-sm">✓</span>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4 text-center space-y-2">
                     <div className="text-lg font-semibold text-green-800">Plant Captured!</div>
-                    <div className="text-sm text-green-600">Ready to identify</div>
+                    <div className="text-sm text-green-600">
+                      {imageSize ? `Optimized: ${formatFileSize(imageSize)}` : "Ready to identify"}
+                    </div>
                   </div>
                 </div>
 
@@ -244,6 +265,16 @@ export default function IdentifyPage() {
 
       {/* Results Section */}
       {result && <ResultDisplay result={result} />}
+
+      {/* Crop Modal */}
+      {originalImage && (
+        <ImageCropModal
+          open={showCropModal}
+          imageSrc={originalImage}
+          onClose={handleCropCancel}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </main>
   );
 }
