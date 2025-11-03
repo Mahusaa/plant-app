@@ -15,11 +15,12 @@ export async function middleware(request: NextRequest) {
   const sessionToken = request.cookies.get("better-auth.session_token")?.value;
 
   // Redirect to login if accessing protected route without session
-  if (isProtectedRoute && !sessionToken) {
-    const url = new URL("/login", request.url);
-    url.searchParams.set("from", pathname);
-    return NextResponse.redirect(url);
-  }
+  // DISABLED: Allow access to protected routes without authentication
+  // if (isProtectedRoute && !sessionToken) {
+  //   const url = new URL("/login", request.url);
+  //   url.searchParams.set("from", pathname);
+  //   return NextResponse.redirect(url);
+  // }
 
   // Redirect to dashboard if accessing auth routes with active session
   if (isAuthRoute && sessionToken) {
