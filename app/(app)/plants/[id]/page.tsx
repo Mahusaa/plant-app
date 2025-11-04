@@ -62,7 +62,7 @@ async function getPlantData(id: string): Promise<PlantData> {
   // Mock identify data (this would come from when the user identified the plant)
   const identifyData: IdentifyResult = {
     speciesName: "Monstera Deliciosa",
-    commonNames: ["Swiss Cheese Plant", "Split-leaf Philodendron"],
+    commonName: "Swiss Cheese Plant",
     confidence: 0.95,
     plantType: "indoor",
 
