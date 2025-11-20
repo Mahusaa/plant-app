@@ -8,6 +8,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ReferenceA
 import type { PlantData, DailyDataPoint } from "./page";
 import { healthAdviceAction } from "@/actions/health";
 import { useStreamableValue } from "@ai-sdk/rsc";
+import { useHistoricalData } from "@/lib/firebase-iot";
 
 type SensorKey = "waterLevel" | "lightIntensity" | "soilMoisture";
 
@@ -65,15 +66,21 @@ const sensorConfig: SensorCardData[] = [
 
 interface PlantDetailClientProps {
   plantData: PlantData;
+  hasDevice: boolean;
+  deviceId: string | null;
+  isLoadingSensor: boolean;
 }
 
-export function PlantDetailClient({ plantData }: PlantDetailClientProps) {
+export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSensor }: PlantDetailClientProps) {
   const [selectedSensor, setSelectedSensor] = useState<SensorCardData | null>(null);
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [showStatusInfo, setShowStatusInfo] = useState(false);
   const [aiContext, setAiContext] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<any>(null);
+
+  // Get historical data from Firebase (30 minutes time series)
+  const { data: firebaseHistoricalData, loading: historicalLoading } = useHistoricalData(deviceId, "30min");
 
   const getSensorValue = (key: SensorKey): number => {
     return plantData.currentSensorData[key];
@@ -113,9 +120,58 @@ export function PlantDetailClient({ plantData }: PlantDetailClientProps) {
     }
   };
 
-  const [timeRange, setTimeRange] = useState<"day" | "week">("week");
+  const [timeRange, setTimeRange] = useState<"day" | "week">("day");
 
   const getChartData = (key: SensorKey) => {
+    // Debug logging
+    console.log("🔍 Getting chart data for:", key);
+    console.log("📊 Has device:", hasDevice);
+    console.log("📊 Firebase data length:", firebaseHistoricalData?.length || 0);
+    console.log("📊 Firebase data sample:", firebaseHistoricalData?.slice(0, 2));
+
+    // Use Firebase historical data if available, otherwise fall back to mock data
+    if (hasDevice && firebaseHistoricalData && firebaseHistoricalData.length > 0) {
+      // Map Firebase data to chart format
+      const chartData = firebaseHistoricalData.map((point) => {
+        const normalizedPoint = point as typeof point & Record<string, unknown>;
+
+        const rawValue =
+          key === "waterLevel"
+            ? normalizedPoint.level_air ??
+              normalizedPoint.water_level ??
+              normalizedPoint.waterLevel
+            : key === "lightIntensity"
+              ? normalizedPoint.intensitas_cahaya ??
+                normalizedPoint.lux ??
+                normalizedPoint.lightIntensity
+              : normalizedPoint.kelembapan_tanah ??
+                normalizedPoint.soil_moisture ??
+                normalizedPoint.soilMoisture;
+
+        const numericValue =
+          typeof rawValue === "string"
+            ? Number(rawValue)
+            : typeof rawValue === "number"
+              ? rawValue
+              : NaN;
+        const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+
+        return {
+          date: new Date(point.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          time: point.time,
+          value: safeValue,
+          fullDate: new Date(point.timestamp).toLocaleDateString(),
+          timestamp: new Date(point.timestamp).getTime(),
+        };
+      });
+
+      console.log("✅ Using Firebase data:", chartData.length, "points");
+      console.log("📈 Value range:", Math.min(...chartData.map(d => d.value)), "-", Math.max(...chartData.map(d => d.value)));
+      return chartData;
+    }
+
+    console.log("⚠️ Using mock data (no Firebase data)");
+    // Fall back to mock data if no Firebase data
     const now = new Date();
     let daysToShow = timeRange === "day" ? 1 : 7;
 
@@ -360,19 +416,7 @@ export function PlantDetailClient({ plantData }: PlantDetailClientProps) {
                         tick={{ fontSize: 10, fill: "#64748b" }}
                         tickLine={false}
                         axisLine={{ stroke: "#cbd5e1" }}
-                        domain={[
-                          (dataMin: number) => {
-                            const threshold = getSensorThresholds(selectedSensor.key);
-                            return Math.max(0, Math.min(dataMin - 10, threshold.min - 20));
-                          },
-                          (dataMax: number) => {
-                            const threshold = getSensorThresholds(selectedSensor.key);
-                            if (selectedSensor.key === "lightIntensity") {
-                              return Math.max(dataMax + 100, threshold.max + 300);
-                            }
-                            return Math.min(100, Math.max(dataMax + 10, threshold.max + 15));
-                          }
-                        ]}
+                        domain={['dataMin - 10', 'dataMax + 10']}
                       />
 
                       {/* Optimal zone background - more prominent */}

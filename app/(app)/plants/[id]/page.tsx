@@ -54,102 +54,68 @@ function generateDailyData(baseValue: number, variance: number, days: number = 3
   return data;
 }
 
-// Mock function to get plant data - replace with actual API call
-async function getPlantData(id: string): Promise<PlantData> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 100));
+// Convert care requirements from DB to IdentifyResult format
+function buildIdentifyDataFromCareRequirements(plant: any): IdentifyResult {
+  const care = plant.careRequirements;
 
-  // Mock identify data (this would come from when the user identified the plant)
-  const identifyData: IdentifyResult = {
-    speciesName: "Monstera Deliciosa",
-    commonName: "Swiss Cheese Plant",
-    confidence: 0.95,
-    plantType: "indoor",
-
-    // Light requirements for IoT sensor
-    lightRequirements: {
-      min: 1000,
-      max: 2500,
-      ideal: 1800,
-      description: "Bright indirect light",
-    },
-
-    // Soil moisture requirements for IoT sensor
-    soilMoistureRequirements: {
-      min: 40,
-      max: 60,
-      ideal: 50,
-      description: "Keep soil moderately moist",
-    },
-
-    // Water level requirements for auto-watering reservoir
-    waterLevelRequirements: {
-      min: 50,
-      max: 80,
-      description: "Maintain adequate water reservoir",
-    },
-
-    // Watering schedule
-    wateringSchedule: {
-      amountMl: 500,
-      frequencyDays: 7,
-      notes: ["Water when top 2 inches of soil are dry", "Reduce watering in winter"],
-    },
-
-    // Optional environmental preferences
-    temperatureRange: {
-      min: 18,
-      max: 27,
-      ideal: 22,
-    },
-
-    humidityRange: {
-      min: 50,
-      max: 70,
-      ideal: 60,
-    },
-
-    // Care information
-    careNotes: [
-      "Water when top 2 inches of soil are dry",
-      "Prefers humid environments - mist regularly",
-      "Fertilize monthly during growing season",
-      "Wipe leaves to remove dust",
-      "Provide support for climbing",
-    ],
-
-    healthIssues: [
-      "Yellow leaves indicate overwatering",
-      "Brown leaf tips suggest low humidity",
-      "Pale leaves mean insufficient light",
-    ],
-
-    growthRate: "fast",
-    maxHeight: "2-3 meters indoors",
-
-    toxicity: {
-      toxic: true,
-      notes: "Toxic to cats and dogs if ingested",
-    },
-  };
+  if (!care) {
+    // Return default values if no care requirements exist
+    return {
+      speciesName: plant.scientificName || "Unknown",
+      commonName: plant.commonName || plant.name,
+      plantType: "indoor",
+      lightRequirements: { min: 1000, max: 2500 },
+      soilMoistureRequirements: { min: 40, max: 60 },
+      waterLevelRequirements: { min: 50, max: 80 },
+      wateringSchedule: { amountMl: 500, frequencyDays: 7 },
+      careNotes: [],
+    };
+  }
 
   return {
-    id,
-    name: "Monstera",
-    latinName: identifyData.speciesName,
-    image: "/bougenvile.png",
-    identifyData,
-    currentSensorData: {
-      waterLevel: 65,
-      lightIntensity: 1800,
-      soilMoisture: 45,
-      timestamp: new Date(),
+    speciesName: plant.scientificName || "Unknown",
+    commonName: plant.commonName || plant.name,
+    plantType: "indoor",
+    lightRequirements: {
+      min: care.lightMin || 1000,
+      max: care.lightMax || 2500,
+      ideal: care.lightIdeal,
+      description: care.lightDescription,
     },
-    historicalData: {
-      waterLevel: generateDailyData(70, 20),
-      lightIntensity: generateDailyData(1800, 500),
-      soilMoisture: generateDailyData(50, 25),
+    soilMoistureRequirements: {
+      min: care.soilMoistureMin || 40,
+      max: care.soilMoistureMax || 60,
+      ideal: care.soilMoistureIdeal,
+      description: care.soilMoistureDescription,
     },
+    waterLevelRequirements: {
+      min: care.waterLevelMin || 50,
+      max: care.waterLevelMax || 80,
+      description: care.waterLevelDescription,
+    },
+    wateringSchedule: {
+      amountMl: care.wateringAmountMl || 500,
+      frequencyDays: care.wateringFrequencyDays || 7,
+      notes: care.wateringNotes ? JSON.parse(care.wateringNotes) : [],
+    },
+    temperatureRange: care.temperatureMin && care.temperatureMax ? {
+      min: care.temperatureMin,
+      max: care.temperatureMax,
+      ideal: care.temperatureIdeal,
+    } : undefined,
+    humidityRange: care.humidityMin && care.humidityMax ? {
+      min: care.humidityMin,
+      max: care.humidityMax,
+      ideal: care.humidityIdeal,
+    } : undefined,
+    careNotes: care.careNotes ? JSON.parse(care.careNotes) : [],
+    healthIssues: care.healthIssues ? JSON.parse(care.healthIssues) : [],
+    growthRate: care.growthRate as any,
+    maxHeight: care.maxHeight,
+    toxicity: care.isToxic !== null ? {
+      toxic: care.isToxic,
+      notes: care.toxicityNotes,
+    } : undefined,
   };
 }
 
@@ -159,7 +125,99 @@ interface PlantDetailPageProps {
 
 export default async function PlantDetailPage({ params }: PlantDetailPageProps) {
   const { id } = await params;
-  const mockPlantData = await getPlantData(id);
 
-  return <PlantDetailWrapper id={id} mockPlantData={mockPlantData} />;
+  // MAP PLANT ID TO FIREBASE DEVICE ID
+  // Plant ID "1" → Firebase device "device_001"
+  const plantToDeviceMap: Record<string, string> = {
+    "1": "device_001",
+    "2": "device_002",
+    // Add more mappings as needed
+  };
+
+  const firebaseDeviceId = plantToDeviceMap[id] || null;
+
+  console.log("🌱 Plant ID:", id);
+  console.log("📡 Mapped to Firebase device:", firebaseDeviceId);
+
+  // DUMMY DATA FOR TESTING - Skip PostgreSQL query
+  const identifyData: IdentifyResult = {
+    speciesName: "Monstera Deliciosa",
+    commonName: "Swiss Cheese Plant",
+    confidence: 0.95,
+    plantType: "indoor",
+    lightRequirements: {
+      min: 1000,
+      max: 2500,
+      ideal: 1800,
+      description: "Bright indirect light",
+    },
+    soilMoistureRequirements: {
+      min: 40,
+      max: 60,
+      ideal: 50,
+      description: "Keep soil moderately moist",
+    },
+    waterLevelRequirements: {
+      min: 50,
+      max: 80,
+      description: "Maintain adequate water reservoir",
+    },
+    wateringSchedule: {
+      amountMl: 500,
+      frequencyDays: 7,
+      notes: ["Water when top 2 inches of soil are dry", "Reduce watering in winter"],
+    },
+    temperatureRange: {
+      min: 18,
+      max: 27,
+      ideal: 22,
+    },
+    humidityRange: {
+      min: 50,
+      max: 70,
+      ideal: 60,
+    },
+    careNotes: [
+      "Water when top 2 inches of soil are dry",
+      "Prefers humid environments - mist regularly",
+    ],
+    healthIssues: [
+      "Yellow leaves indicate overwatering",
+      "Brown leaf tips suggest low humidity",
+    ],
+    growthRate: "fast",
+    maxHeight: "2-3 meters indoors",
+    toxicity: {
+      toxic: true,
+      notes: "Toxic to cats and dogs if ingested",
+    },
+  };
+
+  const mockPlantData: PlantData = {
+    id,
+    name: "My Monstera Plant",
+    latinName: "Monstera Deliciosa",
+    image: "/bougenvile.png",
+    identifyData,
+    currentSensorData: {
+      waterLevel: 0,
+      lightIntensity: 0,
+      soilMoisture: 0,
+      timestamp: new Date(),
+    },
+    historicalData: {
+      waterLevel: generateDailyData(70, 20),
+      lightIntensity: generateDailyData(1800, 500),
+      soilMoisture: generateDailyData(50, 25),
+    },
+  };
+
+  return (
+    <PlantDetailWrapper
+      id={id}
+      mockPlantData={mockPlantData}
+      firebaseDeviceId={firebaseDeviceId}
+      roomLocation="Living Room"
+    />
+  );
 }

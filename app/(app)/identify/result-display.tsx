@@ -1,12 +1,27 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { type IdentifyResult } from "@/lib/ai-schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useSession } from "@/lib/auth-client";
+import { savePlantWithDevice, validateDevice } from "@/actions/save-plant-with-device";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResultDisplayProps {
   result: IdentifyResult;
@@ -15,6 +30,105 @@ interface ResultDisplayProps {
 
 export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
   const [showImage, setShowImage] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [deviceId, setDeviceId] = useState("");
+  const [plantName, setPlantName] = useState(result.commonName);
+  const [roomLocation, setRoomLocation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [validatingDevice, setValidatingDevice] = useState(false);
+  const [deviceError, setDeviceError] = useState<string | null>(null);
+
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { toast } = useToast();
+
+  const handleValidateDevice = async () => {
+    if (!deviceId.trim()) {
+      setDeviceError("Please enter a device ID");
+      return;
+    }
+
+    setValidatingDevice(true);
+    setDeviceError(null);
+
+    try {
+      const result = await validateDevice(deviceId.trim());
+      if (!result.exists) {
+        setDeviceError(result.error || "Device not found");
+      } else {
+        setDeviceError(null);
+        toast({
+          title: "Device found!",
+          description: "This device is ready to be connected.",
+        });
+      }
+    } catch (error) {
+      setDeviceError("Failed to validate device");
+    } finally {
+      setValidatingDevice(false);
+    }
+  };
+
+  const handleAddPlant = async () => {
+    if (!session?.user?.id) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to add plants",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!deviceId.trim()) {
+      setDeviceError("Device ID is required");
+      return;
+    }
+
+    if (!plantName.trim()) {
+      toast({
+        title: "Plant name required",
+        description: "Please enter a name for your plant",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const saveResult = await savePlantWithDevice({
+        userId: session.user.id,
+        plantName: plantName.trim(),
+        roomLocation: roomLocation.trim() || undefined,
+        deviceId: deviceId.trim(),
+        imageUrl: imagePreview || undefined,
+        identifyResult: result,
+      });
+
+      if (saveResult.success && saveResult.plantId) {
+        toast({
+          title: "Plant added!",
+          description: "Your plant has been added with IoT monitoring",
+        });
+        setShowAddDialog(false);
+        router.push(`/plants/${saveResult.plantId}`);
+      } else {
+        toast({
+          title: "Failed to add plant",
+          description: saveResult.error || "Unknown error occurred",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add plant",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="space-y-4 pb-6">
@@ -329,6 +443,118 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Add to My Plants Button */}
+      <Card className="shadow-sm border-0 bg-gradient-to-br from-green-50 to-emerald-50">
+        <CardContent className="p-4">
+          <Button
+            onClick={() => setShowAddDialog(true)}
+            size="lg"
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-xl shadow-lg"
+          >
+            <span className="mr-2 text-xl">🌱</span>
+            Add to My Plants
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Add Plant Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span>🌱</span>
+              Add {result.commonName} to Collection
+            </DialogTitle>
+            <DialogDescription>
+              Connect your IoT device to start monitoring this plant
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="plantName">Plant Name</Label>
+              <Input
+                id="plantName"
+                value={plantName}
+                onChange={(e) => setPlantName(e.target.value)}
+                placeholder={result.commonName}
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="roomLocation">Room Location (Optional)</Label>
+              <Input
+                id="roomLocation"
+                value={roomLocation}
+                onChange={(e) => setRoomLocation(e.target.value)}
+                placeholder="e.g., Living Room, Bedroom"
+                className="w-full"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="deviceId" className="flex items-center gap-2">
+                Device ID <span className="text-red-500">*</span>
+                <span className="text-xs text-muted-foreground">(Required)</span>
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="deviceId"
+                  value={deviceId}
+                  onChange={(e) => {
+                    setDeviceId(e.target.value);
+                    setDeviceError(null);
+                  }}
+                  placeholder="e.g., device_001"
+                  className={`flex-1 ${deviceError ? "border-red-500" : ""}`}
+                />
+                <Button
+                  type="button"
+                  onClick={handleValidateDevice}
+                  disabled={validatingDevice || !deviceId.trim()}
+                  variant="outline"
+                  size="default"
+                >
+                  {validatingDevice ? "Checking..." : "Validate"}
+                </Button>
+              </div>
+              {deviceError && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <span>⚠️</span>
+                  {deviceError}
+                </p>
+              )}
+              {!deviceError && deviceId && !validatingDevice && (
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  <span>✓</span>
+                  Device validated successfully
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowAddDialog(false)}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleAddPlant}
+              disabled={loading || !deviceId.trim() || !plantName.trim()}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+            >
+              {loading ? "Adding..." : "Add Plant"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

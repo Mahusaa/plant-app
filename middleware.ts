@@ -1,32 +1,59 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { auth } from "@/lib/auth";
 
 const protectedRoutes = ["/dashboard", "/plants", "/identify", "/ai", "/health", "/analytics", "/history", "/profile"];
 const authRoutes = ["/login", "/signup"];
+const publicRoutes = ["/", "/onboarding"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Allow public routes
+  if (publicRoutes.includes(pathname)) {
+    return NextResponse.next();
+  }
 
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  // Get session token from cookies
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
-
-  // Redirect to login if accessing protected route without session
-  if (isProtectedRoute && !sessionToken) {
-    const url = new URL("/login", request.url);
-    url.searchParams.set("from", pathname);
-    return NextResponse.redirect(url);
+  // If not a protected or auth route, allow access
+  if (!isProtectedRoute && !isAuthRoute) {
+    return NextResponse.next();
   }
 
-  // Redirect to dashboard if accessing auth routes with active session
-  if (isAuthRoute && sessionToken) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+  try {
+    // Use Better Auth to check session
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
 
-  return NextResponse.next();
+    // Redirect to login if accessing protected route without session
+    if (isProtectedRoute && !session) {
+      const url = new URL("/login", request.url);
+      url.searchParams.set("from", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    // Redirect to dashboard if accessing auth routes with active session
+    if (isAuthRoute && session) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    return NextResponse.next();
+  } catch (error) {
+    console.error("Middleware auth error:", error);
+
+    // On error with protected routes, redirect to login
+    if (isProtectedRoute) {
+      const url = new URL("/login", request.url);
+      url.searchParams.set("from", pathname);
+      return NextResponse.redirect(url);
+    }
+
+    return NextResponse.next();
+  }
 }
 
 export const config = {
