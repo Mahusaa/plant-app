@@ -3,16 +3,20 @@
  * Based on the schema: devices/{deviceId}/{threshold_plan, iot_data}
  */
 
+import type { IdentifyResult } from "@/lib/ai-schema";
+
 /**
  * Threshold configuration for a device
+ * Extends IdentifyResult with numeric thresholds for IoT device control
  * Set by AI after plant identification
  */
-export interface ThresholdPlan {
+export interface ThresholdPlan extends IdentifyResult {
+  // Numeric thresholds for IoT device (backward compatible)
   lux: number; // Light intensity threshold in lux
   soil_moisture: number; // Soil moisture threshold in percentage
   water_level?: number; // Optional water level threshold
-  temperature?: number; // Optional temperature threshold
-  humidity?: number; // Optional humidity threshold
+  temperature?: number; // Optional temperature threshold in Celsius
+  humidity?: number; // Optional humidity threshold in percentage
 }
 
 /**
@@ -28,17 +32,25 @@ export interface SensorReading {
 }
 
 /**
+ * Device metadata stored in Firebase
+ */
+export interface DeviceMetadata {
+  plantName: string;
+  userId: string;
+  roomLocation: string;
+  imageUrl: string;
+  addedAt: string; // ISO timestamp
+  lastSync: string; // ISO timestamp
+}
+
+/**
  * Complete device data structure
  */
 export interface DeviceData {
   id: string;
   threshold_plan?: ThresholdPlan;
   readings: Record<string, SensorReading>; // Key: Firebase generated ID, Value: sensor reading
-  metadata?: {
-    plantName?: string;
-    userId?: string;
-    lastSync?: string;
-  };
+  metadata?: DeviceMetadata;
 }
 
 /**

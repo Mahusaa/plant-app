@@ -1,6 +1,12 @@
 // app/plants/[id]/page.tsx (Server Component)
+import { Suspense } from "react";
 import { PlantDetailWrapper } from "./plant-detail-wrapper";
 import type { IdentifyResult } from "@/lib/ai-schema";
+import { auth } from "@/lib/auth";
+import { redirect, notFound } from "next/navigation";
+import { headers } from "next/headers";
+import PlantDetailContent from "./plant-detail-content";
+import { PlantDetailSkeleton } from "./plant-detail-skeleton";
 
 // Types for IoT sensor data
 export type PlantData = {
@@ -126,98 +132,19 @@ interface PlantDetailPageProps {
 export default async function PlantDetailPage({ params }: PlantDetailPageProps) {
   const { id } = await params;
 
-  // MAP PLANT ID TO FIREBASE DEVICE ID
-  // Plant ID "1" → Firebase device "device_001"
-  const plantToDeviceMap: Record<string, string> = {
-    "1": "device_001",
-    "2": "device_002",
-    // Add more mappings as needed
-  };
+  // Get authenticated user with Better Auth
+  const headersList = await headers();
+  const session = await auth.api.getSession({
+    headers: headersList,
+  });
 
-  const firebaseDeviceId = plantToDeviceMap[id] || null;
-
-  console.log("🌱 Plant ID:", id);
-  console.log("📡 Mapped to Firebase device:", firebaseDeviceId);
-
-  // DUMMY DATA FOR TESTING - Skip PostgreSQL query
-  const identifyData: IdentifyResult = {
-    speciesName: "Monstera Deliciosa",
-    commonName: "Swiss Cheese Plant",
-    confidence: 0.95,
-    plantType: "indoor",
-    lightRequirements: {
-      min: 1000,
-      max: 2500,
-      ideal: 1800,
-      description: "Bright indirect light",
-    },
-    soilMoistureRequirements: {
-      min: 40,
-      max: 60,
-      ideal: 50,
-      description: "Keep soil moderately moist",
-    },
-    waterLevelRequirements: {
-      min: 50,
-      max: 80,
-      description: "Maintain adequate water reservoir",
-    },
-    wateringSchedule: {
-      amountMl: 500,
-      frequencyDays: 7,
-      notes: ["Water when top 2 inches of soil are dry", "Reduce watering in winter"],
-    },
-    temperatureRange: {
-      min: 18,
-      max: 27,
-      ideal: 22,
-    },
-    humidityRange: {
-      min: 50,
-      max: 70,
-      ideal: 60,
-    },
-    careNotes: [
-      "Water when top 2 inches of soil are dry",
-      "Prefers humid environments - mist regularly",
-    ],
-    healthIssues: [
-      "Yellow leaves indicate overwatering",
-      "Brown leaf tips suggest low humidity",
-    ],
-    growthRate: "fast",
-    maxHeight: "2-3 meters indoors",
-    toxicity: {
-      toxic: true,
-      notes: "Toxic to cats and dogs if ingested",
-    },
-  };
-
-  const mockPlantData: PlantData = {
-    id,
-    name: "My Monstera Plant",
-    latinName: "Monstera Deliciosa",
-    image: "/bougenvile.png",
-    identifyData,
-    currentSensorData: {
-      waterLevel: 0,
-      lightIntensity: 0,
-      soilMoisture: 0,
-      timestamp: new Date(),
-    },
-    historicalData: {
-      waterLevel: generateDailyData(70, 20),
-      lightIntensity: generateDailyData(1800, 500),
-      soilMoisture: generateDailyData(50, 25),
-    },
-  };
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
 
   return (
-    <PlantDetailWrapper
-      id={id}
-      mockPlantData={mockPlantData}
-      firebaseDeviceId={firebaseDeviceId}
-      roomLocation="Living Room"
-    />
+    <Suspense fallback={<PlantDetailSkeleton />}>
+      <PlantDetailContent plantId={id} userId={session.user.id} />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import type { PlantData, DailyDataPoint } from "./page";
 import { healthAdviceAction } from "@/actions/health";
 import { useStreamableValue } from "@ai-sdk/rsc";
 import { useHistoricalData } from "@/lib/firebase-iot";
+import { getRelativeTime, toIndonesiaTime } from "@/lib/time-utils";
 
 type SensorKey = "waterLevel" | "lightIntensity" | "soilMoisture";
 
@@ -75,33 +76,53 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
   const [selectedSensor, setSelectedSensor] = useState<SensorCardData | null>(null);
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [showStatusInfo, setShowStatusInfo] = useState(false);
+  const [showTimeInfo, setShowTimeInfo] = useState(false);
   const [aiContext, setAiContext] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(Date.now());
 
   // Get historical data from Firebase (30 minutes time series)
   const { data: firebaseHistoricalData, loading: historicalLoading } = useHistoricalData(deviceId, "30min");
 
+  // Update current time every 5 seconds for relative time display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 5000); // Update every 5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Get formatted timestamps (with null safety)
+  const lastUpdateTime = plantData.currentSensorData?.timestamp || null;
+  const relativeTime = getRelativeTime(lastUpdateTime);
+  const indonesiaTime = toIndonesiaTime(lastUpdateTime);
+
   const getSensorValue = (key: SensorKey): number => {
-    return plantData.currentSensorData[key];
+    return plantData.currentSensorData?.[key] || 0;
   };
 
   // Get thresholds for each sensor type from identify data
   const getSensorThresholds = (key: SensorKey): { min: number; max: number } => {
+    if (!plantData.identifyData) {
+      return { min: 0, max: 100 };
+    }
+
     if (key === "lightIntensity") {
       return {
-        min: plantData.identifyData.lightRequirements.min,
-        max: plantData.identifyData.lightRequirements.max,
+        min: plantData.identifyData.lightRequirements?.min || 0,
+        max: plantData.identifyData.lightRequirements?.max || 100,
       };
     } else if (key === "soilMoisture") {
       return {
-        min: plantData.identifyData.soilMoistureRequirements.min,
-        max: plantData.identifyData.soilMoistureRequirements.max,
+        min: plantData.identifyData.soilMoistureRequirements?.min || 0,
+        max: plantData.identifyData.soilMoistureRequirements?.max || 100,
       };
     } else if (key === "waterLevel") {
       return {
-        min: plantData.identifyData.waterLevelRequirements.min,
-        max: plantData.identifyData.waterLevelRequirements.max,
+        min: plantData.identifyData.waterLevelRequirements?.min || 0,
+        max: plantData.identifyData.waterLevelRequirements?.max || 100,
       };
     }
     return { min: 0, max: 100 };
@@ -196,8 +217,8 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
 
     try {
       const sensorContext = {
-        lux: plantData.currentSensorData.lightIntensity,
-        moisture: plantData.currentSensorData.soilMoisture,
+        lux: plantData.currentSensorData?.lightIntensity || 0,
+        moisture: plantData.currentSensorData?.soilMoisture || 0,
       };
 
       const prompt = aiContext.trim()
@@ -237,6 +258,24 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
             </button>
           </div>
         </div>
+
+        {/* Last Updated Time */}
+        <button
+          onClick={() => setShowTimeInfo(true)}
+          className="w-full bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-2 flex items-center justify-between hover:from-blue-100 hover:to-cyan-100 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🕐</span>
+            <div className="text-left">
+              <p className="text-[10px] text-blue-600 font-medium">Last Updated</p>
+              <p className="text-xs text-blue-900 font-semibold">{relativeTime}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] text-blue-600 font-medium">WIB</p>
+            <p className="text-xs text-blue-900 font-semibold">{indonesiaTime.time}</p>
+          </div>
+        </button>
 
         <div className="grid grid-cols-3 gap-2">
           {sensorConfig.map((sensor) => {
@@ -293,7 +332,7 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
           <span className="text-base">💡</span>
         </div>
         <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-green-200 rounded-xl p-3 space-y-2">
-          {plantData.identifyData.careNotes && plantData.identifyData.careNotes.length > 0 ? (
+          {plantData.identifyData?.careNotes && plantData.identifyData.careNotes.length > 0 ? (
             <ul className="space-y-2">
               {plantData.identifyData.careNotes.slice(0, 5).map((note, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs text-green-800">
@@ -571,7 +610,7 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
             </Button>
 
             {/* AI Response */}
-            {aiResponse && <StreamedResponse data={aiResponse} />}
+            {aiResponse && <StreamedResponse data={aiResponse} isLoading={aiLoading} />}
           </div>
         </DialogContent>
       </Dialog>
@@ -610,11 +649,75 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Time Info Dialog */}
+      <Dialog open={showTimeInfo} onOpenChange={setShowTimeInfo}>
+        <DialogContent className="w-[90vw] max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <span>🕐</span>
+              Last Updated
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            {/* Relative Time */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
+              <p className="text-xs text-purple-600 font-medium mb-1">Relative Time</p>
+              <p className="text-2xl font-bold text-purple-900">{relativeTime}</p>
+            </div>
+
+            {/* Indonesia Time (WIB) */}
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-blue-600 font-medium">Indonesia Time</p>
+                <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
+                  {indonesiaTime.timezone}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-blue-900">{indonesiaTime.time}</p>
+              <p className="text-xs text-blue-700">{indonesiaTime.date}</p>
+
+              {/* Time Delta */}
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">🌍</span>
+                  <div>
+                    <p className="text-[10px] text-blue-600 font-medium">Time Difference</p>
+                    <p className="text-xs text-blue-900 font-semibold">{indonesiaTime.delta}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Your Local Time */}
+            <div className="bg-gradient-to-r from-slate-50 to-gray-50 border border-slate-200 rounded-lg p-4">
+              <p className="text-xs text-slate-600 font-medium mb-1">Your Local Time</p>
+              <p className="text-lg font-bold text-slate-900">
+                {lastUpdateTime ? lastUpdateTime.toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: false
+                }) : "No data"}
+              </p>
+              <p className="text-xs text-slate-600 mt-1">
+                {lastUpdateTime ? lastUpdateTime.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                }) : "Waiting for sensor data"}
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
-function StreamedResponse({ data }: { data: any }) {
+function StreamedResponse({ data, isLoading }: { data: any; isLoading: boolean }) {
   const [streamedText] = useStreamableValue<string>(data);
 
   return (
@@ -624,10 +727,26 @@ function StreamedResponse({ data }: { data: any }) {
           <span className="text-lg">🌿</span>
         </div>
         <span className="font-semibold text-green-800">AI Recommendation</span>
+        {isLoading && streamedText && (
+          <span className="text-xs text-green-600 animate-pulse">● Analyzing...</span>
+        )}
       </div>
       <div className="whitespace-pre-wrap leading-relaxed text-sm text-green-700 bg-white/50 rounded-lg p-3 border border-green-100">
-        {streamedText || "Analyzing..."}
+        {!streamedText && isLoading ? (
+          <div className="flex items-center gap-2 text-green-600">
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-600 border-t-transparent"></div>
+            <span>Thinking...</span>
+          </div>
+        ) : (
+          <>
+            {streamedText}
+            {isLoading && streamedText && (
+              <span className="inline-block w-2 h-4 bg-green-600 animate-pulse ml-1 align-middle"></span>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
 }
+

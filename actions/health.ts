@@ -66,7 +66,7 @@ export async function healthAdviceAction({
     });
 
     for await (const delta of textStream) {
-      stream.update(delta);
+      stream.append(delta);
     }
 
     stream.done();

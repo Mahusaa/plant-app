@@ -82,55 +82,41 @@ export type NewAiChatSession = typeof aiChatSessions.$inferInsert;
 export type AiChatMessage = typeof aiChatMessages.$inferSelect;
 export type NewAiChatMessage = typeof aiChatMessages.$inferInsert;
 
-// Plant management tables
+// Plant management tables (Firebase-first architecture)
+// Plant metadata stored in Firebase; PostgreSQL stores only user plant list
 export const plants = createTable("plants", {
   id: text("id").primaryKey().notNull(),
   userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  name: text("name").notNull(),
-  scientificName: text("scientific_name"),
-  commonName: text("common_name"),
-  species: text("species"),
-  status: text("status").notNull().default("unknown"), // 'healthy' | 'warning' | 'critical' | 'unknown'
-  isActive: boolean("is_active").notNull().default(true),
-  roomLocation: text("room_location"),
-  firebaseDeviceId: text("firebase_device_id"),
-  imageUrl: text("image_url"),
-  acquiredDate: timestamp("acquired_date"),
+  name: text("name").notNull(), // User-assigned plant name
+  firebaseDeviceId: text("firebase_device_id").notNull().unique(), // Firebase IoT device ID (required)
+  roomLocation: text("room_location"), // Room location (e.g., "Living Room")
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const plantCareRequirements = createTable("plant_care_requirements", {
+// Plant identification history (all plant scans/identifications)
+export const plantIdentifications = createTable("plant_identifications", {
+  id: text("id").primaryKey().notNull(),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  plantId: text("plant_id").references(() => plants.id, { onDelete: "set null" }), // Nullable - not all identifications become plants
+  imageUrl: text("image_url").notNull(), // Captured plant image
+  speciesName: text("species_name").notNull(), // AI result: scientific name
+  commonName: text("common_name").notNull(), // AI result: common name
+  confidence: real("confidence").notNull(), // AI confidence score (0-1)
+  identifiedAt: timestamp("identified_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Watering event logs
+export const wateringLogs = createTable("watering_logs", {
   id: text("id").primaryKey().notNull(),
   plantId: text("plant_id").notNull().references(() => plants.id, { onDelete: "cascade" }),
-  lightMin: integer("light_min"), // lux
-  lightMax: integer("light_max"), // lux
-  lightIdeal: integer("light_ideal"), // lux
-  lightDescription: text("light_description"),
-  soilMoistureMin: integer("soil_moisture_min"), // %
-  soilMoistureMax: integer("soil_moisture_max"), // %
-  soilMoistureIdeal: integer("soil_moisture_ideal"), // %
-  soilMoistureDescription: text("soil_moisture_description"),
-  waterLevelMin: integer("water_level_min"), // %
-  waterLevelMax: integer("water_level_max"), // %
-  waterLevelDescription: text("water_level_description"),
-  wateringAmountMl: integer("watering_amount_ml"),
-  wateringFrequencyDays: integer("watering_frequency_days"),
-  wateringNotes: text("watering_notes"), // JSON array as text
-  temperatureMin: integer("temperature_min"), // Celsius
-  temperatureMax: integer("temperature_max"), // Celsius
-  temperatureIdeal: integer("temperature_ideal"), // Celsius
-  humidityMin: integer("humidity_min"), // %
-  humidityMax: integer("humidity_max"), // %
-  humidityIdeal: integer("humidity_ideal"), // %
-  careNotes: text("care_notes"), // JSON array as text
-  healthIssues: text("health_issues"), // JSON array as text
-  growthRate: text("growth_rate"), // 'slow' | 'moderate' | 'fast'
-  maxHeight: text("max_height"),
-  isToxic: boolean("is_toxic"),
-  toxicityNotes: text("toxicity_notes"),
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  amountMl: integer("amount_ml").notNull(), // Water amount in milliliters
+  method: text("method").notNull(), // 'manual' | 'automatic' | 'pump'
+  notes: text("notes"), // Optional user notes
+  wateredAt: timestamp("watered_at").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 export const plantHealthRecords = createTable("plant_health_records", {
@@ -151,8 +137,11 @@ export const plantHealthRecords = createTable("plant_health_records", {
 export type Plant = typeof plants.$inferSelect;
 export type NewPlant = typeof plants.$inferInsert;
 
-export type PlantCareRequirements = typeof plantCareRequirements.$inferSelect;
-export type NewPlantCareRequirements = typeof plantCareRequirements.$inferInsert;
+export type PlantIdentification = typeof plantIdentifications.$inferSelect;
+export type NewPlantIdentification = typeof plantIdentifications.$inferInsert;
+
+export type WateringLog = typeof wateringLogs.$inferSelect;
+export type NewWateringLog = typeof wateringLogs.$inferInsert;
 
 export type PlantHealthRecord = typeof plantHealthRecords.$inferSelect;
 export type NewPlantHealthRecord = typeof plantHealthRecords.$inferInsert;

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect, useRef } from "react";
 import { healthAdviceAction } from "@/actions/health";
-import { readStreamableValue } from "@ai-sdk/rsc";
+import { useStreamableValue } from "@ai-sdk/rsc";
+import type { StreamableValue } from "@ai-sdk/rsc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ImageCropModal from "@/components/image-crop-modal";
@@ -17,8 +18,16 @@ export default function HealthPage() {
   const [imageBase64, setImageBase64] = useState<string | undefined>(undefined);
   const [imageSize, setImageSize] = useState<number | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
-  const [generation, setGeneration] = useState<string>("");
+  const [streamData, setStreamData] = useState<StreamableValue<string> | undefined>(undefined);
+  const [generation] = useStreamableValue(streamData);
   const [loading, setLoading] = useState(false);
+  const generationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (generationRef.current) {
+      generationRef.current.scrollTop = generationRef.current.scrollHeight;
+    }
+  }, [generation]);
 
   async function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -48,7 +57,7 @@ export default function HealthPage() {
     if (!prompt.trim() && !imageBase64 && !context.trim()) return;
 
     setLoading(true);
-    setGeneration(""); // reset previous output
+    setStreamData(undefined); // reset previous output
 
     try {
       const { output } = await healthAdviceAction({
@@ -56,9 +65,7 @@ export default function HealthPage() {
         imageBase64,
       });
 
-      for await (const delta of readStreamableValue(output)) {
-        setGeneration((current) => `${current}${delta}`);
-      }
+      setStreamData(output);
     } finally {
       setLoading(false);
     }
@@ -165,7 +172,7 @@ export default function HealthPage() {
             </Button>
           </div>
 
-          {generation && (
+          {(generation || loading) && (
             <div className="mt-6">
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
@@ -173,9 +180,24 @@ export default function HealthPage() {
                     <span className="text-lg">🤖</span>
                   </div>
                   <span className="font-semibold text-green-800">AI Health Advisor</span>
+                  {loading && generation && (
+                    <span className="text-xs text-green-600 animate-pulse">● Analyzing...</span>
+                  )}
                 </div>
-                <div className="whitespace-pre-wrap leading-relaxed text-sm text-green-700 bg-white/50 rounded-lg p-3 border border-green-100">
-                  {generation}
+                <div ref={generationRef} className="whitespace-pre-wrap leading-relaxed text-sm text-green-700 bg-white/50 rounded-lg p-3 border border-green-100 max-h-96 overflow-y-auto">
+                  {!generation && loading ? (
+                    <div className="flex items-center gap-2 text-green-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-600 border-t-transparent"></div>
+                      <span>Thinking...</span>
+                    </div>
+                  ) : (
+                    <>
+                      {generation}
+                      {loading && (
+                        <span className="inline-block w-2 h-4 bg-green-600 animate-pulse ml-1 align-middle"></span>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>

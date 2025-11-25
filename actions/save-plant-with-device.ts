@@ -2,11 +2,10 @@
 
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import type { IdentifyResult } from "@/lib/ai-schema";
-import { createPlant } from "@/db/queries/plants";
 import { db } from "@/db";
-import { plantCareRequirements } from "@/db/schema";
+import { plants, plantIdentifications } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import {
   validateDeviceExists,
   writeDeviceThresholds,
@@ -31,12 +30,13 @@ export interface SavePlantResult {
 
 /**
  * Server action to save a plant with device binding after AI identification
- * Flow:
+ * Firebase-first architecture:
  * 1. Validate device exists in Firebase
- * 2. Write AI thresholds to Firebase device
- * 3. Create plant in PostgreSQL
- * 4. Create care requirements in PostgreSQL
- * 5. Update device metadata
+ * 2. Check device not already assigned to another plant
+ * 3. Write COMPLETE AI result to Firebase threshold_plan
+ * 4. Write device metadata to Firebase
+ * 5. Create plant in PostgreSQL (minimal data only)
+ * 6. Save identification record (history)
  */
 export async function savePlantWithDevice(
   input: SavePlantInput
@@ -44,7 +44,7 @@ export async function savePlantWithDevice(
   try {
     const { userId, plantName, roomLocation, deviceId, imageUrl, identifyResult } = input;
 
-    // Step 1: Validate device exists
+    // Step 1: Validate device exists in Firebase
     const deviceExists = await validateDeviceExists(deviceId);
     if (!deviceExists) {
       return {
@@ -53,8 +53,25 @@ export async function savePlantWithDevice(
       };
     }
 
-    // Step 2: Prepare thresholds from AI result and write to Firebase
-    const thresholds: ThresholdPlan = {
+    // Step 2: Check if user already has a plant with this device
+    const existingPlant = await db.query.plants.findFirst({
+      where: and(
+        eq(plants.firebaseDeviceId, deviceId),
+        eq(plants.userId, userId)
+      ),
+    });
+
+    if (existingPlant) {
+      return {
+        success: false,
+        error: "This device is already assigned to another plant. Each device can only be used once.",
+      };
+    }
+
+    // Step 3: Write COMPLETE AI result to Firebase threshold_plan
+    const enhancedThresholdPlan: ThresholdPlan = {
+      ...identifyResult,
+      // Extract numeric thresholds for IoT device control
       lux: identifyResult.lightRequirements.ideal || identifyResult.lightRequirements.max,
       soil_moisture: identifyResult.soilMoistureRequirements.ideal || identifyResult.soilMoistureRequirements.max,
       water_level: identifyResult.waterLevelRequirements.min,
@@ -62,75 +79,43 @@ export async function savePlantWithDevice(
       humidity: identifyResult.humidityRange?.ideal,
     };
 
-    const thresholdsWritten = await writeDeviceThresholds(deviceId, thresholds);
+    const thresholdsWritten = await writeDeviceThresholds(deviceId, enhancedThresholdPlan);
     if (!thresholdsWritten) {
       return {
         success: false,
-        error: "Failed to write thresholds to Firebase device.",
+        error: "Failed to write care data to Firebase device.",
       };
     }
 
-    // Step 3: Create plant in PostgreSQL
+    // Step 4: Write metadata to Firebase
+    await updateDeviceMetadata(deviceId, {
+      plantName,
+      userId,
+      roomLocation: roomLocation || "",
+      imageUrl: imageUrl || "",
+      addedAt: new Date().toISOString(),
+    });
+
+    // Step 5: Create plant in PostgreSQL (minimal data only)
     const plantId = nanoid();
-    const plant = await createPlant({
+    await db.insert(plants).values({
       id: plantId,
       userId,
       name: plantName,
-      scientificName: identifyResult.speciesName,
-      commonName: identifyResult.commonName,
-      species: identifyResult.speciesName,
-      status: "unknown",
-      isActive: true,
-      roomLocation,
       firebaseDeviceId: deviceId,
-      imageUrl,
-      acquiredDate: new Date(),
+      roomLocation: roomLocation || null,
     });
 
-    if (!plant) {
-      return {
-        success: false,
-        error: "Failed to create plant in database.",
-      };
-    }
-
-    // Step 4: Create care requirements in PostgreSQL
-    const careRequirementsId = nanoid();
-    await db.insert(plantCareRequirements).values({
-      id: careRequirementsId,
-      plantId: plant.id,
-      lightMin: identifyResult.lightRequirements.min,
-      lightMax: identifyResult.lightRequirements.max,
-      lightIdeal: identifyResult.lightRequirements.ideal,
-      lightDescription: identifyResult.lightRequirements.description,
-      soilMoistureMin: identifyResult.soilMoistureRequirements.min,
-      soilMoistureMax: identifyResult.soilMoistureRequirements.max,
-      soilMoistureIdeal: identifyResult.soilMoistureRequirements.ideal,
-      soilMoistureDescription: identifyResult.soilMoistureRequirements.description,
-      waterLevelMin: identifyResult.waterLevelRequirements.min,
-      waterLevelMax: identifyResult.waterLevelRequirements.max,
-      waterLevelDescription: identifyResult.waterLevelRequirements.description,
-      wateringAmountMl: identifyResult.wateringSchedule.amountMl,
-      wateringFrequencyDays: identifyResult.wateringSchedule.frequencyDays,
-      wateringNotes: JSON.stringify(identifyResult.wateringSchedule.notes || []),
-      temperatureMin: identifyResult.temperatureRange?.min,
-      temperatureMax: identifyResult.temperatureRange?.max,
-      temperatureIdeal: identifyResult.temperatureRange?.ideal,
-      humidityMin: identifyResult.humidityRange?.min,
-      humidityMax: identifyResult.humidityRange?.max,
-      humidityIdeal: identifyResult.humidityRange?.ideal,
-      careNotes: JSON.stringify(identifyResult.careNotes),
-      healthIssues: JSON.stringify(identifyResult.healthIssues || []),
-      growthRate: identifyResult.growthRate,
-      maxHeight: identifyResult.maxHeight,
-      isToxic: identifyResult.toxicity?.toxic,
-      toxicityNotes: identifyResult.toxicity?.notes,
-    });
-
-    // Step 5: Update device metadata in Firebase
-    await updateDeviceMetadata(deviceId, {
-      plantName: plantName,
-      userId: userId,
+    // Step 6: Save identification record (history)
+    await db.insert(plantIdentifications).values({
+      id: nanoid(),
+      userId,
+      plantId,
+      imageUrl: imageUrl || "",
+      speciesName: identifyResult.speciesName,
+      commonName: identifyResult.commonName,
+      confidence: identifyResult.confidence || 0.95,
+      identifiedAt: new Date(),
     });
 
     // Revalidate relevant pages
@@ -139,7 +124,7 @@ export async function savePlantWithDevice(
 
     return {
       success: true,
-      plantId: plant.id,
+      plantId,
     };
   } catch (error) {
     console.error("Error saving plant with device:", error);

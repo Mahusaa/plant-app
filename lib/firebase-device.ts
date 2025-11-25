@@ -1,6 +1,7 @@
 import { database } from "@/lib/firebase";
 import { ref, get, set, update } from "firebase/database";
-import type { DeviceData, ThresholdPlan, SensorReading } from "@/types/iot";
+import type { DeviceData, ThresholdPlan, SensorReading, DeviceMetadata } from "@/types/iot";
+import type { IdentifyResult } from "@/lib/ai-schema";
 
 /**
  * Validates if a device exists in Firebase
@@ -70,6 +71,32 @@ export async function getDeviceThresholds(deviceId: string): Promise<ThresholdPl
 }
 
 /**
+ * Gets complete device threshold plan (including AI-generated care data)
+ * Alias for getDeviceThresholds with IdentifyResult return type
+ */
+export async function getDeviceThresholdPlan(deviceId: string): Promise<IdentifyResult | null> {
+  return getDeviceThresholds(deviceId);
+}
+
+/**
+ * Gets device metadata from Firebase
+ */
+export async function getDeviceMetadata(deviceId: string): Promise<DeviceMetadata | null> {
+  try {
+    const metadataRef = ref(database, `devices/${deviceId}/metadata`);
+    const snapshot = await get(metadataRef);
+
+    if (snapshot.exists()) {
+      return snapshot.val() as DeviceMetadata;
+    }
+    return null;
+  } catch (error) {
+    console.error("Error getting device metadata:", error);
+    return null;
+  }
+}
+
+/**
  * Gets the latest sensor reading from device
  */
 export async function getLatestSensorReading(deviceId: string) {
@@ -99,11 +126,15 @@ export async function getLatestSensorReading(deviceId: string) {
  */
 export async function updateDeviceMetadata(
   deviceId: string,
-  metadata: { plantName?: string; userId?: string }
+  metadata: Partial<DeviceMetadata>
 ): Promise<boolean> {
   try {
     const metadataRef = ref(database, `devices/${deviceId}/metadata`);
-    await update(metadataRef, metadata);
+    const updateData = {
+      ...metadata,
+      lastSync: new Date().toISOString(), // Always update lastSync
+    };
+    await update(metadataRef, updateData);
     return true;
   } catch (error) {
     console.error("Error updating device metadata:", error);
