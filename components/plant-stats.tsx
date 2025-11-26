@@ -235,13 +235,15 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
                         fontSize={10}
                         tickFormatter={(value) => {
                           const date = new Date(value);
+                          // Add 7 hours for Indonesian timezone (WIB - UTC+7)
+                          const wibDate = new Date(date.getTime() + (7 * 60 * 60 * 1000));
                           switch (timeRange) {
                             case "day":
-                              return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                              return wibDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
                             case "week":
-                              return date.toLocaleDateString([], { weekday: "short", day: "numeric" });
+                              return wibDate.toLocaleDateString([], { weekday: "short", day: "numeric" });
                             case "month":
-                              return date.toLocaleDateString([], { day: "numeric", month: "short" });
+                              return wibDate.toLocaleDateString([], { day: "numeric", month: "short" });
                           }
                         }}
                       />
@@ -258,10 +260,12 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             const date = new Date(label);
+                            // Add 7 hours for Indonesian timezone (WIB - UTC+7)
+                            const wibDate = new Date(date.getTime() + (7 * 60 * 60 * 1000));
                             return (
                               <div className="bg-white p-3 border rounded-lg shadow-lg">
                                 <p className="text-xs sm:text-sm font-medium">
-                                  {date.toLocaleString()}
+                                  {wibDate.toLocaleString()} WIB
                                 </p>
                                 <p className="text-base sm:text-lg font-bold text-green-600">
                                   {payload[0].value}{selectedStat.unit}

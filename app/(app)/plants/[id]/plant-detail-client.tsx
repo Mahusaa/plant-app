@@ -177,12 +177,16 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
               : NaN;
         const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
 
+        // Add 7 hours for Indonesian timezone (WIB - UTC+7)
+        const wibTimestamp = point.timestamp + (7 * 60 * 60 * 1000);
+        const wibDate = new Date(wibTimestamp);
+
         return {
-          date: new Date(point.timestamp).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-          time: point.time,
+          date: wibDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          time: point.time, // This is already formatted in WIB from firebase-iot.ts
           value: safeValue,
-          fullDate: new Date(point.timestamp).toLocaleDateString(),
-          timestamp: new Date(point.timestamp).getTime(),
+          fullDate: wibDate.toLocaleDateString(),
+          timestamp: wibTimestamp,
         };
       });
 
@@ -202,13 +206,19 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
         const diffDays = diffTime / (1000 * 60 * 60 * 24);
         return diffDays <= daysToShow;
       })
-      .map((point) => ({
-        date: point.date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        time: point.date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-        value: point.value,
-        fullDate: point.date.toLocaleDateString(),
-        timestamp: point.date.getTime(),
-      }));
+      .map((point) => {
+        // Add 7 hours for Indonesian timezone (WIB - UTC+7)
+        const wibTimestamp = point.date.getTime() + (7 * 60 * 60 * 1000);
+        const wibDate = new Date(wibTimestamp);
+
+        return {
+          date: wibDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          time: wibDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
+          value: point.value,
+          fullDate: wibDate.toLocaleDateString(),
+          timestamp: wibTimestamp,
+        };
+      });
   };
 
   const handleAiAnalyze = async () => {

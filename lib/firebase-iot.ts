@@ -294,11 +294,14 @@ function getDataPointLimit(timeRange: TimeRange): number {
 }
 
 /**
- * Format timestamp to display time
+ * Format timestamp to display time in Indonesian timezone (WIB - UTC+7)
+ * Adds 7 hours to server time
  */
 function formatTime(timestamp: number): string {
   try {
-    const date = new Date(timestamp);
+    // Add 7 hours (7 * 60 * 60 * 1000 milliseconds) for WIB timezone
+    const wibTimestamp = timestamp + (7 * 60 * 60 * 1000);
+    const date = new Date(wibTimestamp);
     return date.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
