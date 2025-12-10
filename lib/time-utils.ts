@@ -39,6 +39,7 @@ export function getRelativeTime(
 /**
  * Convert timestamp to UTC-7 timezone
  * Returns formatted time string with timezone
+ * Uses the same approach as firebase-iot.ts formatTime() and the graph X-axis
  */
 export function toIndonesiaTime(timestamp: Date | number | null | undefined): {
   time: string;
@@ -55,17 +56,15 @@ export function toIndonesiaTime(timestamp: Date | number | null | undefined): {
     };
   }
 
-  const date = typeof timestamp === "number" ? new Date(timestamp) : timestamp;
+  const originalTimestamp = typeof timestamp === "number" ? timestamp : timestamp.getTime();
 
-  // Convert to UTC-7 timezone (Mountain Standard Time / Pacific Daylight Time)
-  const utcMinus7Time = new Date(
-    date.toLocaleString("en-US", {
-      timeZone: "America/Phoenix",
-    }),
-  );
+  // Subtract 7 hours for UTC-7 timezone (same as firebase-iot.ts and graph)
+  const utcMinus7Timestamp = originalTimestamp - 7 * 60 * 60 * 1000;
+  const utcMinus7Time = new Date(utcMinus7Timestamp);
 
   // Calculate timezone delta from local
-  const localOffset = date.getTimezoneOffset(); // in minutes
+  const localDate = new Date(originalTimestamp);
+  const localOffset = localDate.getTimezoneOffset(); // in minutes
   const utcMinus7Offset = 420; // UTC-7 is 7 hours behind UTC (7 * 60 = 420 minutes behind UTC)
   const deltaMinutes = localOffset - utcMinus7Offset;
   const deltaHours = Math.abs(deltaMinutes) / 60;
