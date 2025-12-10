@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -14,39 +14,57 @@ export default function Onboarding() {
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-cyan-50 border border-blue-300 flex items-center justify-center">
               <span className="text-2xl">✨</span>
             </div>
-            <h2 className="text-2xl font-bold text-slate-800">What you can do</h2>
+            <h2 className="text-2xl font-bold text-slate-800">
+              What you can do
+            </h2>
           </div>
 
           <div className="space-y-3">
             <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
               <span className="text-2xl">🔍</span>
               <div>
-                <div className="font-semibold text-green-800 text-sm">Identify Plants</div>
-                <div className="text-xs text-green-700 mt-1">Scan and identify plants with AI-powered camera</div>
+                <div className="font-semibold text-green-800 text-sm">
+                  Identify Plants
+                </div>
+                <div className="text-xs text-green-700 mt-1">
+                  Scan and identify plants with AI-powered camera
+                </div>
               </div>
             </div>
 
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
               <span className="text-2xl">📊</span>
               <div>
-                <div className="font-semibold text-blue-800 text-sm">IoT Monitoring</div>
-                <div className="text-xs text-blue-700 mt-1">Track light, soil moisture, and water levels in real-time</div>
+                <div className="font-semibold text-blue-800 text-sm">
+                  IoT Monitoring
+                </div>
+                <div className="text-xs text-blue-700 mt-1">
+                  Track light, soil moisture, and water levels in real-time
+                </div>
               </div>
             </div>
 
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
               <span className="text-2xl">💧</span>
               <div>
-                <div className="font-semibold text-yellow-800 text-sm">Smart Reminders</div>
-                <div className="text-xs text-yellow-700 mt-1">Get hydration alerts and track plant growth</div>
+                <div className="font-semibold text-yellow-800 text-sm">
+                  Smart Reminders
+                </div>
+                <div className="text-xs text-yellow-700 mt-1">
+                  Get hydration alerts and track plant growth
+                </div>
               </div>
             </div>
 
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4 flex items-start gap-3">
               <span className="text-2xl">🤖</span>
               <div>
-                <div className="font-semibold text-purple-800 text-sm">AI Health Check</div>
-                <div className="text-xs text-purple-700 mt-1">Ask AI for personalized care tips and warnings</div>
+                <div className="font-semibold text-purple-800 text-sm">
+                  AI Health Check
+                </div>
+                <div className="text-xs text-purple-700 mt-1">
+                  Ask AI for personalized care tips and warnings
+                </div>
               </div>
             </div>
           </div>
@@ -74,8 +92,12 @@ export default function Onboarding() {
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-100 to-emerald-50 border border-green-300 flex items-center justify-center">
               <span className="text-2xl">👤</span>
             </div>
-            <h2 className="text-2xl font-bold text-slate-800">Ready to get started?</h2>
-            <p className="text-sm text-slate-600">Create an account or sign in to continue</p>
+            <h2 className="text-2xl font-bold text-slate-800">
+              Ready to get started?
+            </h2>
+            <p className="text-sm text-slate-600">
+              Create an account or sign in to continue
+            </p>
           </div>
 
           <div className="space-y-3">
@@ -96,9 +118,8 @@ export default function Onboarding() {
 
           <div className="text-xs text-center text-slate-500">
             By continuing you agree to our{" "}
-            <span className="text-green-600 underline">Terms of Service</span>
-            {" "}and{" "}
-            <span className="text-green-600 underline">Privacy Policy</span>
+            <span className="text-green-600 underline">Terms of Service</span>{" "}
+            and <span className="text-green-600 underline">Privacy Policy</span>
           </div>
 
           <div className="flex items-center justify-between text-sm">
@@ -114,5 +135,3 @@ export default function Onboarding() {
     </main>
   );
 }
-
-

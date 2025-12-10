@@ -1,5 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
+import { getApps, initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
 // Firebase configuration from environment variables
@@ -15,7 +15,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase (singleton pattern)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const app =
+  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 // Initialize Analytics (only in browser)
 let analytics;

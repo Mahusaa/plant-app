@@ -1,11 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { deletePlant, type Plant } from "@/lib/plants";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { deletePlant, type Plant } from "@/lib/plants";
 
 interface DetailHeaderProps {
   plant: Plant;
@@ -21,7 +26,7 @@ export function DetailHeader({ plant }: DetailHeaderProps) {
     try {
       deletePlant(plant.id);
       router.push("/plants");
-    } catch (error) {
+    } catch (_error) {
       alert("Failed to delete plant. Please try again.");
       setIsDeleting(false);
     }
@@ -30,9 +35,22 @@ export function DetailHeader({ plant }: DetailHeaderProps) {
   return (
     <>
       <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white sticky top-0 z-10">
-        <Link href="/plants" className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
-          <svg className="h-5 w-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        <Link
+          href="/plants"
+          className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+        >
+          <svg
+            className="h-5 w-5 text-slate-700"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </Link>
         <h1 className="text-base font-semibold text-slate-900">{plant.name}</h1>
@@ -63,11 +81,15 @@ export function DetailHeader({ plant }: DetailHeaderProps) {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="w-[90vw] max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Delete Plant?</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              Delete Plant?
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <p className="text-sm text-slate-600">
-              Are you sure you want to delete <span className="font-semibold">{plant.name}</span>? This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{plant.name}</span>? This action
+              cannot be undone.
             </p>
             <div className="flex gap-3">
               <Button

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, ChangeEvent, useEffect, useRef } from "react";
-import { healthAdviceAction } from "@/actions/health";
-import { useStreamableValue } from "@ai-sdk/rsc";
 import type { StreamableValue } from "@ai-sdk/rsc";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useStreamableValue } from "@ai-sdk/rsc";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
+import { healthAdviceAction } from "@/actions/health";
 import ImageCropModal from "@/components/image-crop-modal";
-import { readFileAsDataURL, formatFileSize } from "@/lib/image-utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Markdown } from "@/components/ui/markdown";
+import { formatFileSize, readFileAsDataURL } from "@/lib/image-utils";
 
 export const maxDuration = 30;
 
@@ -18,7 +19,9 @@ export default function HealthPage() {
   const [imageBase64, setImageBase64] = useState<string | undefined>(undefined);
   const [imageSize, setImageSize] = useState<number | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
-  const [streamData, setStreamData] = useState<StreamableValue<string> | undefined>(undefined);
+  const [streamData, setStreamData] = useState<
+    StreamableValue<string> | undefined
+  >(undefined);
   const [generation] = useStreamableValue(streamData);
   const [loading, setLoading] = useState(false);
   const generationRef = useRef<HTMLDivElement>(null);
@@ -27,7 +30,7 @@ export default function HealthPage() {
     if (generationRef.current) {
       generationRef.current.scrollTop = generationRef.current.scrollHeight;
     }
-  }, [generation]);
+  }, []);
 
   async function handleImageUpload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -79,13 +82,18 @@ export default function HealthPage() {
             <span className="text-2xl">🏥</span>
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Health Check</h1>
-            <p className="text-sm text-slate-500">Get expert advice for your plants 🌿</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+              Health Check
+            </h1>
+            <p className="text-sm text-slate-500">
+              Get expert advice for your plants 🌿
+            </p>
           </div>
         </div>
         <p className="text-sm text-slate-600 bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-center gap-2">
           <span className="text-lg">💡</span>
-          Describe symptoms, upload photos, or ask questions about your plant's health
+          Describe symptoms, upload photos, or ask questions about your plant's
+          health
         </p>
       </header>
 
@@ -179,24 +187,31 @@ export default function HealthPage() {
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center">
                     <span className="text-lg">🤖</span>
                   </div>
-                  <span className="font-semibold text-green-800">AI Health Advisor</span>
+                  <span className="font-semibold text-green-800">
+                    AI Health Advisor
+                  </span>
                   {loading && generation && (
-                    <span className="text-xs text-green-600 animate-pulse">● Analyzing...</span>
+                    <span className="text-xs text-green-600 animate-pulse">
+                      ● Analyzing...
+                    </span>
                   )}
                 </div>
-                <div ref={generationRef} className="whitespace-pre-wrap leading-relaxed text-sm text-green-700 bg-white/50 rounded-lg p-3 border border-green-100 max-h-96 overflow-y-auto">
+                <div
+                  ref={generationRef}
+                  className="leading-relaxed text-sm bg-white/50 rounded-lg p-3 border border-green-100 max-h-96 overflow-y-auto"
+                >
                   {!generation && loading ? (
                     <div className="flex items-center gap-2 text-green-600">
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-600 border-t-transparent"></div>
                       <span>Thinking...</span>
                     </div>
                   ) : (
-                    <>
-                      {generation}
+                    <div>
+                      <Markdown content={generation || ""} />
                       {loading && (
                         <span className="inline-block w-2 h-4 bg-green-600 animate-pulse ml-1 align-middle"></span>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               </div>

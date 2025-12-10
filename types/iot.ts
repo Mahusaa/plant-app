@@ -81,7 +81,13 @@ export interface DataPoint {
 /**
  * Time range options for historical data
  */
-export type TimeRange = "30min" | "1hour" | "6hours" | "24hours" | "7days" | "30days";
+export type TimeRange =
+  | "30min"
+  | "1hour"
+  | "6hours"
+  | "24hours"
+  | "7days"
+  | "30days";
 
 /**
  * Watering event detection result

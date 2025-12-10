@@ -1,12 +1,25 @@
 // app/plants/[id]/plant-stats-client.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceLine,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ResponsiveContainer, Area, AreaChart } from "recharts";
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Types (you can also move these to a separate types file)
 export type PlantStat = {
@@ -37,7 +50,11 @@ interface PlantStatsClientProps {
   timeSeriesData: Record<string, TimeSeriesData>;
 }
 
-export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantStatsClientProps) {
+export function PlantStatsClient({
+  stats,
+  thresholds,
+  timeSeriesData,
+}: PlantStatsClientProps) {
   const [selectedStat, setSelectedStat] = useState<PlantStat | null>(null);
   const [timeRange, setTimeRange] = useState<TimeRange>("day");
 
@@ -64,8 +81,8 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
     }
 
     return data
-      .filter(point => point.timestamp.getTime() >= cutoffTime)
-      .map(point => ({
+      .filter((point) => point.timestamp.getTime() >= cutoffTime)
+      .map((point) => ({
         timestamp: point.timestamp,
         value: Math.round(point.value * 100) / 100,
         formattedTime: point.timestamp.toISOString(),
@@ -80,7 +97,10 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
 
     if (value >= threshold.optimal.min && value <= threshold.optimal.max) {
       return "text-green-600";
-    } else if (value >= threshold.warning.min && value <= threshold.warning.max) {
+    } else if (
+      value >= threshold.warning.min &&
+      value <= threshold.warning.max
+    ) {
       return "text-yellow-600";
     } else {
       return "text-red-600";
@@ -95,7 +115,10 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
 
     if (value >= threshold.optimal.min && value <= threshold.optimal.max) {
       return "●"; // Green dot
-    } else if (value >= threshold.warning.min && value <= threshold.warning.max) {
+    } else if (
+      value >= threshold.warning.min &&
+      value <= threshold.warning.max
+    ) {
       return "⚠"; // Warning
     } else {
       return "⚠"; // Critical
@@ -121,15 +144,19 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
           >
             <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xl sm:text-2xl" aria-hidden>{stat.icon}</span>
-                <span className={`text-xs sm:text-sm font-bold ${getStatusColor(stat)}`}>
+                <span className="text-xl sm:text-2xl" aria-hidden>
+                  {stat.icon}
+                </span>
+                <span
+                  className={`text-xs sm:text-sm font-bold ${getStatusColor(stat)}`}
+                >
                   {getStatusIcon(stat)}
                 </span>
               </div>
 
               <div className="space-y-1">
                 <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase tracking-wide">
-                  {stat.key.replace(/([A-Z])/g, ' $1').trim()}
+                  {stat.key.replace(/([A-Z])/g, " $1").trim()}
                 </p>
                 <div className="flex items-baseline gap-1">
                   <span className="text-xl sm:text-2xl font-bold text-gray-900">
@@ -140,7 +167,9 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
                   </span>
                 </div>
                 {stat.subtitle && (
-                  <p className={`text-[10px] sm:text-xs font-medium ${getStatusColor(stat)}`}>
+                  <p
+                    className={`text-[10px] sm:text-xs font-medium ${getStatusColor(stat)}`}
+                  >
                     {stat.subtitle}
                   </p>
                 )}
@@ -152,17 +181,21 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
 
       {/* Enhanced Chart Modal */}
       {selectedStat && (
-        <Dialog open={!!selectedStat} onOpenChange={() => setSelectedStat(null)}>
+        <Dialog
+          open={!!selectedStat}
+          onOpenChange={() => setSelectedStat(null)}
+        >
           <DialogContent className="w-[95vw] max-w-2xl p-4 sm:p-6 max-h-[80vh] overflow-y-auto">
             <DialogHeader className="space-y-3">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{selectedStat.icon}</span>
                 <div>
                   <DialogTitle className="text-lg sm:text-xl font-bold">
-                    {selectedStat.key.replace(/([A-Z])/g, ' $1').trim()}
+                    {selectedStat.key.replace(/([A-Z])/g, " $1").trim()}
                   </DialogTitle>
                   <p className="text-xs sm:text-sm text-gray-600">
-                    Current: {selectedStat.value}{selectedStat.unit}
+                    Current: {selectedStat.value}
+                    {selectedStat.unit}
                   </p>
                 </div>
               </div>
@@ -178,7 +211,7 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
                       variant={timeRange === range ? "default" : "ghost"}
                       size="sm"
                       onClick={() => setTimeRange(range)}
-                      className={`capitalize ${timeRange === range ? 'bg-white shadow-sm' : ''}`}
+                      className={`capitalize ${timeRange === range ? "bg-white shadow-sm" : ""}`}
                     >
                       {range}
                     </Button>
@@ -190,23 +223,33 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
               {thresholds[selectedStat.key] && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="text-[10px] sm:text-xs font-medium text-green-800">Optimal Range</div>
+                    <div className="text-[10px] sm:text-xs font-medium text-green-800">
+                      Optimal Range
+                    </div>
                     <div className="text-sm font-bold text-green-900">
-                      {thresholds[selectedStat.key].optimal.min} - {thresholds[selectedStat.key].optimal.max}
+                      {thresholds[selectedStat.key].optimal.min} -{" "}
+                      {thresholds[selectedStat.key].optimal.max}
                       <span className="text-xs ml-1">{selectedStat.unit}</span>
                     </div>
                   </div>
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <div className="text-[10px] sm:text-xs font-medium text-yellow-800">Warning Range</div>
+                    <div className="text-[10px] sm:text-xs font-medium text-yellow-800">
+                      Warning Range
+                    </div>
                     <div className="text-sm font-bold text-yellow-900">
-                      {thresholds[selectedStat.key].warning.min} - {thresholds[selectedStat.key].warning.max}
+                      {thresholds[selectedStat.key].warning.min} -{" "}
+                      {thresholds[selectedStat.key].warning.max}
                       <span className="text-xs ml-1">{selectedStat.unit}</span>
                     </div>
                   </div>
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                    <div className="text-[10px] sm:text-xs font-medium text-red-800">Critical Range</div>
+                    <div className="text-[10px] sm:text-xs font-medium text-red-800">
+                      Critical Range
+                    </div>
                     <div className="text-sm font-bold text-red-900">
-                      {"<"}{thresholds[selectedStat.key].critical.min} {"or"} {">"}{thresholds[selectedStat.key].critical.max}
+                      {"<"}
+                      {thresholds[selectedStat.key].critical.min} {"or"} {">"}
+                      {thresholds[selectedStat.key].critical.max}
                       <span className="text-xs ml-1">{selectedStat.unit}</span>
                     </div>
                   </div>
@@ -217,11 +260,28 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
               <div className="h-64 sm:h-80">
                 <ChartContainer config={chartConfig} className="h-full w-full">
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={filteredData} margin={{ top: 12, right: 12, bottom: 12, left: 12 }}>
+                    <AreaChart
+                      data={filteredData}
+                      margin={{ top: 12, right: 12, bottom: 12, left: 12 }}
+                    >
                       <defs>
-                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="hsl(142, 76%, 36%)" stopOpacity={0.1} />
+                        <linearGradient
+                          id="colorValue"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="hsl(142, 76%, 36%)"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="hsl(142, 76%, 36%)"
+                            stopOpacity={0.1}
+                          />
                         </linearGradient>
                       </defs>
 
@@ -236,14 +296,26 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
                         tickFormatter={(value) => {
                           const date = new Date(value);
                           // Add 7 hours for Indonesian timezone (WIB - UTC+7)
-                          const wibDate = new Date(date.getTime() + (7 * 60 * 60 * 1000));
+                          const wibDate = new Date(
+                            date.getTime() + 7 * 60 * 60 * 1000,
+                          );
                           switch (timeRange) {
                             case "day":
-                              return wibDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+                              return wibDate.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: false,
+                              });
                             case "week":
-                              return wibDate.toLocaleDateString([], { weekday: "short", day: "numeric" });
+                              return wibDate.toLocaleDateString([], {
+                                weekday: "short",
+                                day: "numeric",
+                              });
                             case "month":
-                              return wibDate.toLocaleDateString([], { day: "numeric", month: "short" });
+                              return wibDate.toLocaleDateString([], {
+                                day: "numeric",
+                                month: "short",
+                              });
                           }
                         }}
                       />
@@ -253,7 +325,7 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
                         axisLine={false}
                         tickMargin={8}
                         fontSize={10}
-                        domain={['dataMin - 5', 'dataMax + 5']}
+                        domain={["dataMin - 5", "dataMax + 5"]}
                       />
 
                       <ChartTooltip
@@ -261,14 +333,17 @@ export function PlantStatsClient({ stats, thresholds, timeSeriesData }: PlantSta
                           if (active && payload && payload.length) {
                             const date = new Date(label);
                             // Add 7 hours for Indonesian timezone (WIB - UTC+7)
-                            const wibDate = new Date(date.getTime() + (7 * 60 * 60 * 1000));
+                            const wibDate = new Date(
+                              date.getTime() + 7 * 60 * 60 * 1000,
+                            );
                             return (
                               <div className="bg-white p-3 border rounded-lg shadow-lg">
                                 <p className="text-xs sm:text-sm font-medium">
                                   {wibDate.toLocaleString()} WIB
                                 </p>
                                 <p className="text-base sm:text-lg font-bold text-green-600">
-                                  {payload[0].value}{selectedStat.unit}
+                                  {payload[0].value}
+                                  {selectedStat.unit}
                                 </p>
                               </div>
                             );

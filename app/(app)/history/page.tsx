@@ -2,9 +2,24 @@ import { Card } from "@/components/ui/card";
 
 export default function HistoryPage() {
   const historyData = [
-    { action: "Watered Daisy", time: "2 hours ago", emoji: "💧", color: "blue" },
-    { action: "Checked Light Levels", time: "1 day ago", emoji: "☀️", color: "yellow" },
-    { action: "Added Fertilizer", time: "3 days ago", emoji: "🌱", color: "green" },
+    {
+      action: "Watered Daisy",
+      time: "2 hours ago",
+      emoji: "💧",
+      color: "blue",
+    },
+    {
+      action: "Checked Light Levels",
+      time: "1 day ago",
+      emoji: "☀️",
+      color: "yellow",
+    },
+    {
+      action: "Added Fertilizer",
+      time: "3 days ago",
+      emoji: "🌱",
+      color: "green",
+    },
   ];
 
   const getColorClasses = (color: string) => {
@@ -28,8 +43,12 @@ export default function HistoryPage() {
             <span className="text-2xl">📜</span>
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">History</h1>
-            <p className="text-sm text-slate-500">Track your plant care activities 📝</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+              History
+            </h1>
+            <p className="text-sm text-slate-500">
+              Track your plant care activities 📝
+            </p>
           </div>
         </div>
         <p className="text-sm text-slate-600 bg-yellow-50 border border-yellow-200 rounded-xl p-3 flex items-center gap-2">
@@ -40,8 +59,8 @@ export default function HistoryPage() {
 
       <div className="space-y-4">
         {historyData.map((item, i) => (
-          <Card 
-            key={i} 
+          <Card
+            key={i}
             className={`p-4 shadow-sm bg-gradient-to-r ${getColorClasses(item.color)} border hover:shadow-md transition-all duration-200`}
           >
             <div className="flex items-center gap-3">
@@ -59,5 +78,3 @@ export default function HistoryPage() {
     </main>
   );
 }
-
-

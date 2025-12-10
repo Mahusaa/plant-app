@@ -1,27 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { type IdentifyResult } from "@/lib/ai-schema";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import {
+  savePlantWithDevice,
+  validateDevice,
+} from "@/actions/save-plant-with-device";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
-import { savePlantWithDevice, validateDevice } from "@/actions/save-plant-with-device";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import type { IdentifyResult } from "@/lib/ai-schema";
+import { useSession } from "@/lib/auth-client";
 
 interface ResultDisplayProps {
   result: IdentifyResult;
@@ -62,7 +65,7 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
           description: "This device is ready to be connected.",
         });
       }
-    } catch (error) {
+    } catch (_error) {
       setDeviceError("Failed to validate device");
     } finally {
       setValidatingDevice(false);
@@ -122,7 +125,8 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add plant",
+        description:
+          error instanceof Error ? error.message : "Failed to add plant",
         variant: "destructive",
       });
     } finally {
@@ -144,7 +148,11 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                 <span>📸</span>
                 Captured Image
               </span>
-              {showImage ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              {showImage ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
             </button>
             {showImage && (
               <div className="mt-3 relative mx-auto max-w-xs">
@@ -164,7 +172,9 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-100 to-emerald-50 border border-green-300 flex items-center justify-center">
-                <span className="text-2xl">{getMoodEmoji(result.confidence)}</span>
+                <span className="text-2xl">
+                  {getMoodEmoji(result.confidence)}
+                </span>
               </div>
               <div className="flex-1">
                 <CardTitle className="text-xl sm:text-2xl text-slate-800 font-bold">
@@ -196,7 +206,9 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                   value={Math.round(result.confidence * 100)}
                   className="h-3 bg-gradient-to-r from-green-100 to-emerald-100"
                 />
-                <span className="text-sm text-slate-600 font-medium">Confidence</span>
+                <span className="text-sm text-slate-600 font-medium">
+                  Confidence
+                </span>
               </div>
             )}
           </div>
@@ -225,7 +237,8 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                   <span className="text-2xl">🌱</span>
                 </div>
                 <div className="text-sm font-bold text-green-900">
-                  {result.soilMoistureRequirements.min}–{result.soilMoistureRequirements.max}%
+                  {result.soilMoistureRequirements.min}–
+                  {result.soilMoistureRequirements.max}%
                 </div>
                 <div className="text-xs text-green-700">moisture</div>
               </div>
@@ -235,7 +248,8 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                   <span className="text-2xl">💧</span>
                 </div>
                 <div className="text-sm font-bold text-blue-900">
-                  {result.waterLevelRequirements.min}–{result.waterLevelRequirements.max}%
+                  {result.waterLevelRequirements.min}–
+                  {result.waterLevelRequirements.max}%
                 </div>
                 <div className="text-xs text-blue-700">reservoir</div>
               </div>
@@ -286,7 +300,10 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                   <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4">
                     <ul className="list-none space-y-2">
                       {result.careNotes.map((note: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-green-800">
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-sm text-green-800"
+                        >
                           <span className="text-green-600 mt-0.5">•</span>
                           <span className="leading-relaxed">{note}</span>
                         </li>
@@ -305,7 +322,10 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                   <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4">
                     <ul className="list-none space-y-2">
                       {result.healthIssues.map((issue: string, i: number) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-amber-800">
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-sm text-amber-800"
+                        >
                           <span className="text-amber-600 mt-0.5">•</span>
                           <span className="leading-relaxed">{issue}</span>
                         </li>
@@ -321,17 +341,27 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
               <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-lg">💧</span>
-                  <span className="font-semibold text-blue-800">Watering Schedule</span>
+                  <span className="font-semibold text-blue-800">
+                    Watering Schedule
+                  </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <div className="text-xs text-blue-600 font-medium mb-1">Amount</div>
-                    <div className="text-2xl font-bold text-blue-900">{result.wateringSchedule.amountMl}</div>
+                    <div className="text-xs text-blue-600 font-medium mb-1">
+                      Amount
+                    </div>
+                    <div className="text-2xl font-bold text-blue-900">
+                      {result.wateringSchedule.amountMl}
+                    </div>
                     <div className="text-xs text-blue-700">ml per session</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xs text-blue-600 font-medium mb-1">Frequency</div>
-                    <div className="text-2xl font-bold text-blue-900">{result.wateringSchedule.frequencyDays}</div>
+                    <div className="text-xs text-blue-600 font-medium mb-1">
+                      Frequency
+                    </div>
+                    <div className="text-2xl font-bold text-blue-900">
+                      {result.wateringSchedule.frequencyDays}
+                    </div>
                     <div className="text-xs text-blue-700">days</div>
                   </div>
                 </div>
@@ -344,12 +374,17 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                     <span>Watering Tips</span>
                   </div>
                   <ul className="list-none space-y-2">
-                    {result.wateringSchedule.notes.map((note: string, i: number) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                        <span className="text-blue-500 mt-0.5">•</span>
-                        <span>{note}</span>
-                      </li>
-                    ))}
+                    {result.wateringSchedule.notes.map(
+                      (note: string, i: number) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-sm text-slate-700"
+                        >
+                          <span className="text-blue-500 mt-0.5">•</span>
+                          <span>{note}</span>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 </div>
               ) : null}
@@ -361,13 +396,18 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                 <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-lg">🌡️</span>
-                    <span className="font-semibold text-orange-800">Temperature</span>
+                    <span className="font-semibold text-orange-800">
+                      Temperature
+                    </span>
                   </div>
                   <div className="text-lg font-bold text-orange-900">
-                    {result.temperatureRange.min}°C - {result.temperatureRange.max}°C
+                    {result.temperatureRange.min}°C -{" "}
+                    {result.temperatureRange.max}°C
                   </div>
                   {result.temperatureRange.ideal && (
-                    <div className="text-sm text-orange-700 mt-1">Ideal: {result.temperatureRange.ideal}°C</div>
+                    <div className="text-sm text-orange-700 mt-1">
+                      Ideal: {result.temperatureRange.ideal}°C
+                    </div>
                   )}
                 </div>
               )}
@@ -382,7 +422,9 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                     {result.humidityRange.min}% - {result.humidityRange.max}%
                   </div>
                   {result.humidityRange.ideal && (
-                    <div className="text-sm text-sky-700 mt-1">Ideal: {result.humidityRange.ideal}%</div>
+                    <div className="text-sm text-sky-700 mt-1">
+                      Ideal: {result.humidityRange.ideal}%
+                    </div>
                   )}
                 </div>
               )}
@@ -391,9 +433,13 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                 <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-lg">☀️</span>
-                    <span className="font-semibold text-yellow-800">Light Description</span>
+                    <span className="font-semibold text-yellow-800">
+                      Light Description
+                    </span>
                   </div>
-                  <p className="text-sm text-yellow-800">{result.lightRequirements.description}</p>
+                  <p className="text-sm text-yellow-800">
+                    {result.lightRequirements.description}
+                  </p>
                 </div>
               )}
             </TabsContent>
@@ -403,15 +449,23 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
               <div className="grid grid-cols-2 gap-3">
                 {result.growthRate && (
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                    <div className="text-xs text-slate-600 mb-1">Growth Rate</div>
-                    <div className="text-sm font-bold text-slate-900 capitalize">{result.growthRate}</div>
+                    <div className="text-xs text-slate-600 mb-1">
+                      Growth Rate
+                    </div>
+                    <div className="text-sm font-bold text-slate-900 capitalize">
+                      {result.growthRate}
+                    </div>
                   </div>
                 )}
 
                 {result.maxHeight && (
                   <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
-                    <div className="text-xs text-slate-600 mb-1">Max Height</div>
-                    <div className="text-sm font-bold text-slate-900">{result.maxHeight}</div>
+                    <div className="text-xs text-slate-600 mb-1">
+                      Max Height
+                    </div>
+                    <div className="text-sm font-bold text-slate-900">
+                      {result.maxHeight}
+                    </div>
                   </div>
                 )}
               </div>
@@ -425,7 +479,9 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-lg">{result.toxicity.toxic ? "⚠️" : "✅"}</span>
+                    <span className="text-lg">
+                      {result.toxicity.toxic ? "⚠️" : "✅"}
+                    </span>
                     <span
                       className={`font-semibold ${result.toxicity.toxic ? "text-red-900" : "text-green-900"}`}
                     >
@@ -433,7 +489,9 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
                     </span>
                   </div>
                   {result.toxicity.notes && (
-                    <p className={`text-sm ${result.toxicity.toxic ? "text-red-800" : "text-green-800"}`}>
+                    <p
+                      className={`text-sm ${result.toxicity.toxic ? "text-red-800" : "text-green-800"}`}
+                    >
                       {result.toxicity.notes}
                     </p>
                   )}
@@ -497,7 +555,9 @@ export function ResultDisplay({ result, imagePreview }: ResultDisplayProps) {
             <div className="space-y-2">
               <Label htmlFor="deviceId" className="flex items-center gap-2">
                 Device ID <span className="text-red-500">*</span>
-                <span className="text-xs text-muted-foreground">(Required)</span>
+                <span className="text-xs text-muted-foreground">
+                  (Required)
+                </span>
               </Label>
               <div className="flex gap-2">
                 <Input

@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Loader2 } from "lucide-react";
+import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  getCroppedAndCompressedImage,
-  formatFileSize,
   type CropArea,
+  formatFileSize,
+  getCroppedAndCompressedImage,
 } from "@/lib/image-utils";
-import { Loader2 } from "lucide-react";
 
 interface ImageCropModalProps {
   open: boolean;
@@ -33,7 +33,7 @@ export default function ImageCropModal({
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<CropArea | null>(
-    null
+    null,
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export default function ImageCropModal({
     (_croppedArea: CropArea, croppedAreaPixels: CropArea) => {
       setCroppedAreaPixels(croppedAreaPixels);
     },
-    []
+    [],
   );
 
   const handleCropAndCompress = async () => {
@@ -57,13 +57,13 @@ export default function ImageCropModal({
     try {
       const { dataUrl, size } = await getCroppedAndCompressedImage(
         imageSrc,
-        croppedAreaPixels
+        croppedAreaPixels,
       );
 
       // Check if still over 1MB (unlikely but possible)
       if (size > 1024 * 1024) {
         setError(
-          `Image is still ${formatFileSize(size)}. Please crop a smaller area.`
+          `Image is still ${formatFileSize(size)}. Please crop a smaller area.`,
         );
         setIsProcessing(false);
         return;

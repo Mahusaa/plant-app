@@ -1,7 +1,8 @@
 "use client";
 
+import { LogOut, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useSession, signOut } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { User, LogOut, Settings } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { signOut, useSession } from "@/lib/auth-client";
 
 export function UserHeader() {
   const { data: session, isPending } = useSession();
@@ -42,7 +42,11 @@ export function UserHeader() {
   if (!session?.user) {
     return (
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => router.push("/login")}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => router.push("/login")}
+        >
           Sign in
         </Button>
         <Button size="sm" onClick={() => router.push("/signup")}>
@@ -53,12 +57,15 @@ export function UserHeader() {
   }
 
   const user = session.user;
-  const initials = user.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || user.email?.[0]?.toUpperCase() || "U";
+  const initials =
+    user.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) ||
+    user.email?.[0]?.toUpperCase() ||
+    "U";
 
   return (
     <Dialog>

@@ -1,12 +1,11 @@
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import DashboardHeader from "./components/dashboard-header";
-import QuickActions from "./components/quick-actions";
 import PlantsList from "./components/plants-list";
-import { HeaderSkeleton } from "./components/skeletons";
-import { PlantsSkeleton } from "./components/skeletons";
+import QuickActions from "./components/quick-actions";
+import { HeaderSkeleton, PlantsSkeleton } from "./components/skeletons";
 
 export default async function DashboardPage() {
   // Get authenticated user with Better Auth

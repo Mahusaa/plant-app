@@ -5,13 +5,15 @@
 /**
  * Get relative time string (e.g., "2 minutes ago", "1 s ago")
  */
-export function getRelativeTime(timestamp: Date | number | null | undefined): string {
+export function getRelativeTime(
+  timestamp: Date | number | null | undefined,
+): string {
   if (!timestamp) {
     return "No data";
   }
 
   const now = Date.now();
-  const then = typeof timestamp === 'number' ? timestamp : timestamp.getTime();
+  const then = typeof timestamp === "number" ? timestamp : timestamp.getTime();
   const diffMs = now - then;
   const diffSec = Math.floor(diffMs / 1000);
   const diffMin = Math.floor(diffSec / 60);
@@ -25,12 +27,12 @@ export function getRelativeTime(timestamp: Date | number | null | undefined): st
   } else if (diffMin < 60) {
     return `${diffMin} min ago`;
   } else if (diffHour < 24) {
-    return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+    return `${diffHour} hour${diffHour > 1 ? "s" : ""} ago`;
   } else if (diffDay < 7) {
-    return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+    return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
   } else {
     const date = new Date(then);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   }
 }
 
@@ -49,39 +51,44 @@ export function toIndonesiaTime(timestamp: Date | number | null | undefined): {
       time: "No data",
       date: "No data",
       timezone: "WIB (UTC+7)",
-      delta: "Unknown"
+      delta: "Unknown",
     };
   }
 
-  const date = typeof timestamp === 'number' ? new Date(timestamp) : timestamp;
+  const date = typeof timestamp === "number" ? new Date(timestamp) : timestamp;
 
   // Convert to Indonesia timezone (WIB = UTC+7)
-  const wibTime = new Date(date.toLocaleString('en-US', {
-    timeZone: 'Asia/Jakarta'
-  }));
+  const wibTime = new Date(
+    date.toLocaleString("en-US", {
+      timeZone: "Asia/Jakarta",
+    }),
+  );
 
   // Calculate timezone delta from local
   const localOffset = date.getTimezoneOffset(); // in minutes
   const wibOffset = -420; // WIB is UTC+7 (7 * 60 = 420 minutes ahead of UTC, negative because getTimezoneOffset returns negative for ahead)
   const deltaMinutes = localOffset - wibOffset;
   const deltaHours = Math.abs(deltaMinutes) / 60;
-  const deltaSign = deltaMinutes > 0 ? '+' : '-';
+  const deltaSign = deltaMinutes > 0 ? "+" : "-";
 
   return {
-    time: wibTime.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
+    time: wibTime.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
     }),
-    date: wibTime.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    date: wibTime.toLocaleDateString("en-US", {
+      weekday: "short",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     }),
-    timezone: 'WIB (UTC+7)',
-    delta: deltaHours !== 0 ? `${deltaSign}${deltaHours}h from your time` : 'Same as your timezone'
+    timezone: "WIB (UTC+7)",
+    delta:
+      deltaHours !== 0
+        ? `${deltaSign}${deltaHours}h from your time`
+        : "Same as your timezone",
   };
 }
 
@@ -95,14 +102,15 @@ export function formatTimestamp(timestamp: Date | number): {
 } {
   return {
     relative: getRelativeTime(timestamp),
-    absolute: new Date(typeof timestamp === 'number' ? timestamp : timestamp.getTime())
-      .toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }),
-    indonesia: toIndonesiaTime(timestamp)
+    absolute: new Date(
+      typeof timestamp === "number" ? timestamp : timestamp.getTime(),
+    ).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }),
+    indonesia: toIndonesiaTime(timestamp),
   };
 }

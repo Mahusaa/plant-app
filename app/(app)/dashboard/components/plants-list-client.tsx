@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toIndonesiaTime } from "@/lib/time-utils";
 
 interface Plant {
   id: string;
@@ -18,7 +19,10 @@ interface PlantsListClientProps {
 
 function PlantItem({ plant }: { plant: Plant }) {
   return (
-    <Link href={`/plants/${plant.id}`} className="group rounded-2xl border border-slate-200 p-4 flex gap-4 items-center bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-200">
+    <Link
+      href={`/plants/${plant.id}`}
+      className="group rounded-2xl border border-slate-200 p-4 flex gap-4 items-center bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-green-200"
+    >
       <div className="relative">
         <div className="h-18 w-18 rounded-xl bg-gradient-to-br from-green-100 to-emerald-50 border border-slate-100 flex items-center justify-center">
           <span className="text-3xl">🌿</span>
@@ -42,17 +46,37 @@ function PlantItem({ plant }: { plant: Plant }) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <svg
+            className="w-3 h-3 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
           </svg>
           <div className="text-xs text-slate-500">
-            Added {plant.createdAt.toLocaleDateString()}
+            Added {toIndonesiaTime(plant.createdAt).date}
           </div>
         </div>
       </div>
       <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        <svg
+          className="w-5 h-5 text-slate-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
         </svg>
       </div>
     </Link>
@@ -67,8 +91,11 @@ export default function PlantsListClient({ plants }: PlantsListClientProps) {
           <h2 className="text-xl font-bold text-slate-800">Your Plants</h2>
           <span className="text-xl">🌱</span>
         </div>
-        <Badge variant="secondary" className="bg-green-100 text-green-700 border-green-200">
-          {plants.length} {plants.length === 1 ? 'plant' : 'plants'}
+        <Badge
+          variant="secondary"
+          className="bg-green-100 text-green-700 border-green-200"
+        >
+          {plants.length} {plants.length === 1 ? "plant" : "plants"}
         </Badge>
       </div>
       {plants.length === 0 ? (
@@ -77,8 +104,12 @@ export default function PlantsListClient({ plants }: PlantsListClientProps) {
             <span className="text-3xl">🌱</span>
           </div>
           <div className="text-center space-y-2">
-            <h3 className="text-base font-semibold text-slate-700">No plants yet</h3>
-            <p className="text-sm text-slate-500">Scan your first plant to get started!</p>
+            <h3 className="text-base font-semibold text-slate-700">
+              No plants yet
+            </h3>
+            <p className="text-sm text-slate-500">
+              Scan your first plant to get started!
+            </p>
           </div>
           <Link href="/identify">
             <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg">

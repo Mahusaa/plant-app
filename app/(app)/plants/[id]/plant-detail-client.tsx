@@ -1,15 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ReferenceLine, ReferenceArea, ResponsiveContainer, Area, AreaChart, ReferenceDot } from "recharts";
-import type { PlantData, DailyDataPoint } from "./page";
-import { healthAdviceAction } from "@/actions/health";
 import { useStreamableValue } from "@ai-sdk/rsc";
+import { useEffect, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceArea,
+  ReferenceLine,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { toast } from "sonner";
+import { healthAdviceAction } from "@/actions/health";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Markdown } from "@/components/ui/markdown";
 import { useHistoricalData } from "@/lib/firebase-iot";
 import { getRelativeTime, toIndonesiaTime } from "@/lib/time-utils";
+import type { PlantData } from "./page";
 
 type SensorKey = "waterLevel" | "lightIntensity" | "soilMoisture";
 
@@ -72,18 +88,26 @@ interface PlantDetailClientProps {
   isLoadingSensor: boolean;
 }
 
-export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSensor }: PlantDetailClientProps) {
-  const [selectedSensor, setSelectedSensor] = useState<SensorCardData | null>(null);
+export function PlantDetailClient({
+  plantData,
+  hasDevice,
+  deviceId,
+  isLoadingSensor,
+}: PlantDetailClientProps) {
+  const [selectedSensor, setSelectedSensor] = useState<SensorCardData | null>(
+    null,
+  );
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [showStatusInfo, setShowStatusInfo] = useState(false);
   const [showTimeInfo, setShowTimeInfo] = useState(false);
   const [aiContext, setAiContext] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState<any>(null);
-  const [currentTime, setCurrentTime] = useState(Date.now());
+  const [_currentTime, setCurrentTime] = useState(Date.now());
 
   // Get historical data from Firebase (30 minutes time series)
-  const { data: firebaseHistoricalData, loading: historicalLoading } = useHistoricalData(deviceId, "30min");
+  const { data: firebaseHistoricalData, loading: historicalLoading } =
+    useHistoricalData(deviceId, "30min");
 
   // Update current time every 5 seconds for relative time display
   useEffect(() => {
@@ -104,7 +128,9 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
   };
 
   // Get thresholds for each sensor type from identify data
-  const getSensorThresholds = (key: SensorKey): { min: number; max: number } => {
+  const getSensorThresholds = (
+    key: SensorKey,
+  ): { min: number; max: number } => {
     if (!plantData.identifyData) {
       return { min: 0, max: 100 };
     }
@@ -128,16 +154,30 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
     return { min: 0, max: 100 };
   };
 
-  const getSensorStatus = (key: SensorKey): { status: string; emoji: string; description: string } => {
+  const getSensorStatus = (
+    key: SensorKey,
+  ): { status: string; emoji: string; description: string } => {
     const value = getSensorValue(key);
     const { min, max } = getSensorThresholds(key);
 
     if (value >= min && value <= max) {
-      return { status: "Optimal", emoji: "✅", description: "Perfect conditions" };
+      return {
+        status: "Optimal",
+        emoji: "✅",
+        description: "Perfect conditions",
+      };
     } else if (value < min * 0.7 || value > max * 1.3) {
-      return { status: "Critical", emoji: "🔴", description: "Needs immediate attention" };
+      return {
+        status: "Critical",
+        emoji: "🔴",
+        description: "Needs immediate attention",
+      };
     } else {
-      return { status: "Warning", emoji: "⚠️", description: "Suboptimal conditions" };
+      return {
+        status: "Warning",
+        emoji: "⚠️",
+        description: "Suboptimal conditions",
+      };
     }
   };
 
@@ -147,27 +187,37 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
     // Debug logging
     console.log("🔍 Getting chart data for:", key);
     console.log("📊 Has device:", hasDevice);
-    console.log("📊 Firebase data length:", firebaseHistoricalData?.length || 0);
-    console.log("📊 Firebase data sample:", firebaseHistoricalData?.slice(0, 2));
+    console.log(
+      "📊 Firebase data length:",
+      firebaseHistoricalData?.length || 0,
+    );
+    console.log(
+      "📊 Firebase data sample:",
+      firebaseHistoricalData?.slice(0, 2),
+    );
 
     // Use Firebase historical data if available, otherwise fall back to mock data
-    if (hasDevice && firebaseHistoricalData && firebaseHistoricalData.length > 0) {
+    if (
+      hasDevice &&
+      firebaseHistoricalData &&
+      firebaseHistoricalData.length > 0
+    ) {
       // Map Firebase data to chart format
       const chartData = firebaseHistoricalData.map((point) => {
         const normalizedPoint = point as typeof point & Record<string, unknown>;
 
         const rawValue =
           key === "waterLevel"
-            ? normalizedPoint.level_air ??
+            ? (normalizedPoint.level_air ??
               normalizedPoint.water_level ??
-              normalizedPoint.waterLevel
+              normalizedPoint.waterLevel)
             : key === "lightIntensity"
-              ? normalizedPoint.intensitas_cahaya ??
+              ? (normalizedPoint.intensitas_cahaya ??
                 normalizedPoint.lux ??
-                normalizedPoint.lightIntensity
-              : normalizedPoint.kelembapan_tanah ??
+                normalizedPoint.lightIntensity)
+              : (normalizedPoint.kelembapan_tanah ??
                 normalizedPoint.soil_moisture ??
-                normalizedPoint.soilMoisture;
+                normalizedPoint.soilMoisture);
 
         const numericValue =
           typeof rawValue === "string"
@@ -178,11 +228,14 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
         const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
 
         // Add 7 hours for Indonesian timezone (WIB - UTC+7)
-        const wibTimestamp = point.timestamp + (7 * 60 * 60 * 1000);
+        const wibTimestamp = point.timestamp + 7 * 60 * 60 * 1000;
         const wibDate = new Date(wibTimestamp);
 
         return {
-          date: wibDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          date: wibDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
           time: point.time, // This is already formatted in WIB from firebase-iot.ts
           value: safeValue,
           fullDate: wibDate.toLocaleDateString(),
@@ -191,14 +244,19 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
       });
 
       console.log("✅ Using Firebase data:", chartData.length, "points");
-      console.log("📈 Value range:", Math.min(...chartData.map(d => d.value)), "-", Math.max(...chartData.map(d => d.value)));
+      console.log(
+        "📈 Value range:",
+        Math.min(...chartData.map((d) => d.value)),
+        "-",
+        Math.max(...chartData.map((d) => d.value)),
+      );
       return chartData;
     }
 
     console.log("⚠️ Using mock data (no Firebase data)");
     // Fall back to mock data if no Firebase data
     const now = new Date();
-    let daysToShow = timeRange === "day" ? 1 : 7;
+    const daysToShow = timeRange === "day" ? 1 : 7;
 
     return plantData.historicalData[key]
       .filter((point) => {
@@ -208,12 +266,19 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
       })
       .map((point) => {
         // Add 7 hours for Indonesian timezone (WIB - UTC+7)
-        const wibTimestamp = point.date.getTime() + (7 * 60 * 60 * 1000);
+        const wibTimestamp = point.date.getTime() + 7 * 60 * 60 * 1000;
         const wibDate = new Date(wibTimestamp);
 
         return {
-          date: wibDate.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-          time: wibDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }),
+          date: wibDate.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          time: wibDate.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }),
           value: point.value,
           fullDate: wibDate.toLocaleDateString(),
           timestamp: wibTimestamp,
@@ -238,11 +303,15 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
       const { output } = await healthAdviceAction({
         prompt,
         context: sensorContext,
+        plantId: plantData.id,
+        deviceId: deviceId || undefined,
       });
 
       setAiResponse(output);
+      toast.success("Health analysis complete");
     } catch (error) {
       console.error("AI analysis failed:", error);
+      toast.error("Failed to analyze plant health");
     } finally {
       setAiLoading(false);
     }
@@ -277,13 +346,19 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
           <div className="flex items-center gap-2">
             <span className="text-sm">🕐</span>
             <div className="text-left">
-              <p className="text-[10px] text-blue-600 font-medium">Last Updated</p>
-              <p className="text-xs text-blue-900 font-semibold">{relativeTime}</p>
+              <p className="text-[10px] text-blue-600 font-medium">
+                Last Updated
+              </p>
+              <p className="text-xs text-blue-900 font-semibold">
+                {relativeTime}
+              </p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-[10px] text-blue-600 font-medium">WIB</p>
-            <p className="text-xs text-blue-900 font-semibold">{indonesiaTime.time}</p>
+            <p className="text-xs text-blue-900 font-semibold">
+              {indonesiaTime.time}
+            </p>
           </div>
         </button>
 
@@ -313,7 +388,9 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
                   {/* Value */}
                   <div className="text-center">
                     <div className="flex items-baseline justify-center gap-0.5">
-                      <span className={`text-xl font-bold ${sensor.color.text} leading-none`}>
+                      <span
+                        className={`text-xl font-bold ${sensor.color.text} leading-none`}
+                      >
                         {value}
                       </span>
                       <span className="text-[10px] text-slate-600 font-medium">
@@ -338,21 +415,29 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
       {/* Care Tips */}
       <section className="px-6 space-y-3 pt-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-slate-700">Care Tips</span>
+          <span className="text-sm font-semibold text-slate-700">
+            Care Tips
+          </span>
           <span className="text-base">💡</span>
         </div>
         <div className="bg-gradient-to-br from-emerald-50 to-green-50 border border-green-200 rounded-xl p-3 space-y-2">
-          {plantData.identifyData?.careNotes && plantData.identifyData.careNotes.length > 0 ? (
+          {plantData.identifyData?.careNotes &&
+          plantData.identifyData.careNotes.length > 0 ? (
             <ul className="space-y-2">
               {plantData.identifyData.careNotes.slice(0, 5).map((note, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs text-green-800">
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-xs text-green-800"
+                >
                   <span className="text-green-600 mt-0.5 flex-shrink-0">•</span>
                   <span className="leading-relaxed">{note}</span>
                 </li>
               ))}
             </ul>
           ) : (
-            <p className="text-xs text-green-700 text-center py-2">No care tips available yet</p>
+            <p className="text-xs text-green-700 text-center py-2">
+              No care tips available yet
+            </p>
           )}
         </div>
       </section>
@@ -365,21 +450,36 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
         >
           <span className="text-lg">🤖</span>
           <span className="text-sm">AI Health Analysis</span>
-          <svg className="h-4 w-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          <svg
+            className="h-4 w-4 ml-auto"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 7l5 5m0 0l-5 5m5-5H6"
+            />
           </svg>
         </Button>
       </section>
 
       {/* Sensor Detail Dialog */}
       {selectedSensor && (
-        <Dialog open={!!selectedSensor} onOpenChange={() => setSelectedSensor(null)}>
+        <Dialog
+          open={!!selectedSensor}
+          onOpenChange={() => setSelectedSensor(null)}
+        >
           <DialogContent className="w-[95vw] max-w-md max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <div className="flex items-center gap-3">
                 <span className="text-3xl">{selectedSensor.emoji}</span>
                 <div>
-                  <DialogTitle className="text-lg font-bold">{selectedSensor.label}</DialogTitle>
+                  <DialogTitle className="text-lg font-bold">
+                    {selectedSensor.label}
+                  </DialogTitle>
                   <p className="text-sm text-slate-600">
                     Current: {getSensorValue(selectedSensor.key)}
                     {selectedSensor.unit}
@@ -428,29 +528,43 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
                     >
                       <defs>
                         {/* Area gradient for the data line */}
-                        <linearGradient id={`areaGradient${selectedSensor.key}`} x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient
+                          id={`areaGradient${selectedSensor.key}`}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
                           <stop
                             offset="5%"
                             stopColor={
-                              selectedSensor.color.bg === 'bg-blue-500' ? '#3b82f6' :
-                              selectedSensor.color.bg === 'bg-yellow-500' ? '#eab308' :
-                              '#22c55e'
+                              selectedSensor.color.bg === "bg-blue-500"
+                                ? "#3b82f6"
+                                : selectedSensor.color.bg === "bg-yellow-500"
+                                  ? "#eab308"
+                                  : "#22c55e"
                             }
                             stopOpacity={0.4}
                           />
                           <stop
                             offset="95%"
                             stopColor={
-                              selectedSensor.color.bg === 'bg-blue-500' ? '#3b82f6' :
-                              selectedSensor.color.bg === 'bg-yellow-500' ? '#eab308' :
-                              '#22c55e'
+                              selectedSensor.color.bg === "bg-blue-500"
+                                ? "#3b82f6"
+                                : selectedSensor.color.bg === "bg-yellow-500"
+                                  ? "#eab308"
+                                  : "#22c55e"
                             }
                             stopOpacity={0.1}
                           />
                         </linearGradient>
                       </defs>
 
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#e2e8f0"
+                        vertical={false}
+                      />
 
                       <XAxis
                         dataKey={timeRange === "day" ? "time" : "date"}
@@ -465,12 +579,14 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
                         tick={{ fontSize: 10, fill: "#64748b" }}
                         tickLine={false}
                         axisLine={{ stroke: "#cbd5e1" }}
-                        domain={['dataMin - 10', 'dataMax + 10']}
+                        domain={["dataMin - 10", "dataMax + 10"]}
                       />
 
                       {/* Optimal zone background - more prominent */}
                       {(() => {
-                        const threshold = getSensorThresholds(selectedSensor.key);
+                        const threshold = getSensorThresholds(
+                          selectedSensor.key,
+                        );
                         return (
                           <ReferenceArea
                             y1={threshold.min}
@@ -484,7 +600,9 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
 
                       {/* Threshold boundary lines with labels */}
                       {(() => {
-                        const threshold = getSensorThresholds(selectedSensor.key);
+                        const threshold = getSensorThresholds(
+                          selectedSensor.key,
+                        );
                         return (
                           <>
                             <ReferenceLine
@@ -524,9 +642,11 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
                         type="monotone"
                         dataKey="value"
                         stroke={
-                          selectedSensor.color.bg === 'bg-blue-500' ? '#3b82f6' :
-                          selectedSensor.color.bg === 'bg-yellow-500' ? '#eab308' :
-                          '#22c55e'
+                          selectedSensor.color.bg === "bg-blue-500"
+                            ? "#3b82f6"
+                            : selectedSensor.color.bg === "bg-yellow-500"
+                              ? "#eab308"
+                              : "#22c55e"
                         }
                         strokeWidth={3}
                         fill={`url(#areaGradient${selectedSensor.key})`}
@@ -539,15 +659,25 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
                 <div className="flex items-center justify-center gap-4 text-xs">
                   <div className="flex items-center gap-1.5">
                     <div className="w-4 h-3 bg-green-500 bg-opacity-20 border-2 border-green-600 border-dashed rounded-sm"></div>
-                    <span className="text-slate-700 font-medium">Optimal Zone</span>
+                    <span className="text-slate-700 font-medium">
+                      Optimal Zone
+                    </span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-2 rounded-full" style={{
-                      background: selectedSensor.color.bg === 'bg-blue-500' ? '#3b82f6' :
-                      selectedSensor.color.bg === 'bg-yellow-500' ? '#eab308' :
-                      '#22c55e'
-                    }}></div>
-                    <span className="text-slate-700 font-medium">Sensor Data</span>
+                    <div
+                      className="w-4 h-2 rounded-full"
+                      style={{
+                        background:
+                          selectedSensor.color.bg === "bg-blue-500"
+                            ? "#3b82f6"
+                            : selectedSensor.color.bg === "bg-yellow-500"
+                              ? "#eab308"
+                              : "#22c55e",
+                      }}
+                    ></div>
+                    <span className="text-slate-700 font-medium">
+                      Sensor Data
+                    </span>
                   </div>
                 </div>
               </div>
@@ -563,8 +693,12 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
             <div className="flex items-center gap-3">
               <span className="text-3xl">🤖</span>
               <div>
-                <DialogTitle className="text-lg font-bold">AI Health Analysis</DialogTitle>
-                <p className="text-sm text-slate-600">Get personalized plant care advice</p>
+                <DialogTitle className="text-lg font-bold">
+                  AI Health Analysis
+                </DialogTitle>
+                <p className="text-sm text-slate-600">
+                  Get personalized plant care advice
+                </p>
               </div>
             </div>
           </DialogHeader>
@@ -572,26 +706,36 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
           <div className="space-y-4 pt-4">
             {/* Current Sensor Data */}
             <div className="bg-gradient-to-r from-slate-50 to-slate-100 border-2 border-slate-200 rounded-xl p-4">
-              <h4 className="text-sm font-semibold text-slate-700 mb-3">Current Sensor Data</h4>
+              <h4 className="text-sm font-semibold text-slate-700 mb-3">
+                Current Sensor Data
+              </h4>
               <div className="grid grid-cols-3 gap-2 text-xs">
                 <div className="text-center">
                   <div className="font-medium text-slate-600">Water</div>
-                  <div className="font-bold text-slate-900">{plantData.currentSensorData.waterLevel}%</div>
+                  <div className="font-bold text-slate-900">
+                    {plantData.currentSensorData.waterLevel}%
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="font-medium text-slate-600">Light</div>
-                  <div className="font-bold text-slate-900">{plantData.currentSensorData.lightIntensity} lux</div>
+                  <div className="font-bold text-slate-900">
+                    {plantData.currentSensorData.lightIntensity} lux
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="font-medium text-slate-600">Soil</div>
-                  <div className="font-bold text-slate-900">{plantData.currentSensorData.soilMoisture}%</div>
+                  <div className="font-bold text-slate-900">
+                    {plantData.currentSensorData.soilMoisture}%
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Context Input */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Additional Context (Optional)</label>
+              <label className="text-sm font-semibold text-slate-700">
+                Additional Context (Optional)
+              </label>
               <textarea
                 value={aiContext}
                 onChange={(e) => setAiContext(e.target.value)}
@@ -620,7 +764,9 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
             </Button>
 
             {/* AI Response */}
-            {aiResponse && <StreamedResponse data={aiResponse} isLoading={aiLoading} />}
+            {aiResponse && (
+              <StreamedResponse data={aiResponse} isLoading={aiLoading} />
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -629,23 +775,33 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
       <Dialog open={showStatusInfo} onOpenChange={setShowStatusInfo}>
         <DialogContent className="w-[90vw] max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-lg font-bold">Status Indicators</DialogTitle>
+            <DialogTitle className="text-lg font-bold">
+              Status Indicators
+            </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3 pt-2">
             <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50 border border-green-200">
               <span className="text-2xl">✅</span>
               <div className="flex-1">
-                <h4 className="font-semibold text-green-900 text-sm">Optimal</h4>
-                <p className="text-xs text-green-700 mt-0.5">Perfect conditions for your plant's health and growth</p>
+                <h4 className="font-semibold text-green-900 text-sm">
+                  Optimal
+                </h4>
+                <p className="text-xs text-green-700 mt-0.5">
+                  Perfect conditions for your plant's health and growth
+                </p>
               </div>
             </div>
 
             <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50 border border-yellow-200">
               <span className="text-2xl">⚠️</span>
               <div className="flex-1">
-                <h4 className="font-semibold text-yellow-900 text-sm">Warning</h4>
-                <p className="text-xs text-yellow-700 mt-0.5">Suboptimal conditions - monitor and adjust if needed</p>
+                <h4 className="font-semibold text-yellow-900 text-sm">
+                  Warning
+                </h4>
+                <p className="text-xs text-yellow-700 mt-0.5">
+                  Suboptimal conditions - monitor and adjust if needed
+                </p>
               </div>
             </div>
 
@@ -653,7 +809,9 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
               <span className="text-2xl">🔴</span>
               <div className="flex-1">
                 <h4 className="font-semibold text-red-900 text-sm">Critical</h4>
-                <p className="text-xs text-red-700 mt-0.5">Needs immediate attention - plant health at risk</p>
+                <p className="text-xs text-red-700 mt-0.5">
+                  Needs immediate attention - plant health at risk
+                </p>
               </div>
             </div>
           </div>
@@ -673,19 +831,27 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
           <div className="space-y-4 pt-2">
             {/* Relative Time */}
             <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4">
-              <p className="text-xs text-purple-600 font-medium mb-1">Relative Time</p>
-              <p className="text-2xl font-bold text-purple-900">{relativeTime}</p>
+              <p className="text-xs text-purple-600 font-medium mb-1">
+                Relative Time
+              </p>
+              <p className="text-2xl font-bold text-purple-900">
+                {relativeTime}
+              </p>
             </div>
 
             {/* Indonesia Time (WIB) */}
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs text-blue-600 font-medium">Indonesia Time</p>
+                <p className="text-xs text-blue-600 font-medium">
+                  Indonesia Time
+                </p>
                 <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
                   {indonesiaTime.timezone}
                 </span>
               </div>
-              <p className="text-xl font-bold text-blue-900">{indonesiaTime.time}</p>
+              <p className="text-xl font-bold text-blue-900">
+                {indonesiaTime.time}
+              </p>
               <p className="text-xs text-blue-700">{indonesiaTime.date}</p>
 
               {/* Time Delta */}
@@ -693,8 +859,12 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
                 <div className="flex items-center gap-2">
                   <span className="text-sm">🌍</span>
                   <div>
-                    <p className="text-[10px] text-blue-600 font-medium">Time Difference</p>
-                    <p className="text-xs text-blue-900 font-semibold">{indonesiaTime.delta}</p>
+                    <p className="text-[10px] text-blue-600 font-medium">
+                      Time Difference
+                    </p>
+                    <p className="text-xs text-blue-900 font-semibold">
+                      {indonesiaTime.delta}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -702,22 +872,28 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
 
             {/* Your Local Time */}
             <div className="bg-gradient-to-r from-slate-50 to-gray-50 border border-slate-200 rounded-lg p-4">
-              <p className="text-xs text-slate-600 font-medium mb-1">Your Local Time</p>
+              <p className="text-xs text-slate-600 font-medium mb-1">
+                Your Local Time
+              </p>
               <p className="text-lg font-bold text-slate-900">
-                {lastUpdateTime ? lastUpdateTime.toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: '2-digit',
-                  hour12: false
-                }) : "No data"}
+                {lastUpdateTime
+                  ? lastUpdateTime.toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                      hour12: false,
+                    })
+                  : "No data"}
               </p>
               <p className="text-xs text-slate-600 mt-1">
-                {lastUpdateTime ? lastUpdateTime.toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
-                }) : "Waiting for sensor data"}
+                {lastUpdateTime
+                  ? lastUpdateTime.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : "Waiting for sensor data"}
               </p>
             </div>
           </div>
@@ -727,7 +903,13 @@ export function PlantDetailClient({ plantData, hasDevice, deviceId, isLoadingSen
   );
 }
 
-function StreamedResponse({ data, isLoading }: { data: any; isLoading: boolean }) {
+function StreamedResponse({
+  data,
+  isLoading,
+}: {
+  data: any;
+  isLoading: boolean;
+}) {
   const [streamedText] = useStreamableValue<string>(data);
 
   return (
@@ -738,25 +920,26 @@ function StreamedResponse({ data, isLoading }: { data: any; isLoading: boolean }
         </div>
         <span className="font-semibold text-green-800">AI Recommendation</span>
         {isLoading && streamedText && (
-          <span className="text-xs text-green-600 animate-pulse">● Analyzing...</span>
+          <span className="text-xs text-green-600 animate-pulse">
+            ● Analyzing...
+          </span>
         )}
       </div>
-      <div className="whitespace-pre-wrap leading-relaxed text-sm text-green-700 bg-white/50 rounded-lg p-3 border border-green-100">
+      <div className="leading-relaxed text-sm bg-white/50 rounded-lg p-3 border border-green-100">
         {!streamedText && isLoading ? (
           <div className="flex items-center gap-2 text-green-600">
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-green-600 border-t-transparent"></div>
             <span>Thinking...</span>
           </div>
         ) : (
-          <>
-            {streamedText}
+          <div>
+            <Markdown content={streamedText || ""} />
             {isLoading && streamedText && (
               <span className="inline-block w-2 h-4 bg-green-600 animate-pulse ml-1 align-middle"></span>
             )}
-          </>
+          </div>
         )}
       </div>
     </div>
   );
 }
-

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { eq } from "drizzle-orm";
+import { type NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +18,10 @@ export async function POST(request: NextRequest) {
     const { image } = body;
 
     if (!image || !image.startsWith("data:image/")) {
-      return NextResponse.json({ error: "Invalid image data" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid image data" },
+        { status: 400 },
+      );
     }
 
     // In a production app, you would upload to a cloud storage service
@@ -34,6 +37,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Update avatar error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

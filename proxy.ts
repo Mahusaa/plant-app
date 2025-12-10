@@ -1,12 +1,21 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-const protectedRoutes = ["/dashboard", "/plants", "/identify", "/ai", "/health", "/analytics", "/history", "/profile"];
+const protectedRoutes = [
+  "/dashboard",
+  "/plants",
+  "/identify",
+  "/ai",
+  "/health",
+  "/analytics",
+  "/history",
+  "/profile",
+];
 const authRoutes = ["/login", "/signup"];
 const publicRoutes = ["/", "/onboarding"];
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes
@@ -15,7 +24,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check if the route is protected
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
   // If not a protected or auth route, allow access
@@ -43,7 +54,7 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch (error) {
-    console.error("Middleware auth error:", error);
+    console.error("Proxy auth error:", error);
 
     // On error with protected routes, redirect to login
     if (isProtectedRoute) {

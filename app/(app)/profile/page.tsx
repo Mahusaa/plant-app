@@ -1,12 +1,12 @@
 "use client";
 
-import { useSession, signOut } from "@/lib/auth-client";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2, Camera } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { Camera, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { signOut, useSession } from "@/lib/auth-client";
 
 export default function ProfilePage() {
   const { data: session, isPending } = useSession();
@@ -39,12 +39,15 @@ export default function ProfilePage() {
   }
 
   const user = session.user;
-  const initials = user.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || user.email?.[0]?.toUpperCase() || "U";
+  const initials =
+    user.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) ||
+    user.email?.[0]?.toUpperCase() ||
+    "U";
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,7 +89,7 @@ export default function ProfilePage() {
       };
 
       reader.readAsDataURL(file);
-    } catch (err) {
+    } catch (_err) {
       setError("Failed to upload avatar");
       setTimeout(() => setError(""), 3000);
     } finally {
@@ -126,7 +129,11 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               <div className="relative">
                 <Avatar className="h-20 w-20 border-4 border-green-200 shadow-lg">
-                  <AvatarImage src={user.image || ""} alt={user.name || "User"} className="object-cover" />
+                  <AvatarImage
+                    src={user.image || ""}
+                    alt={user.name || "User"}
+                    className="object-cover"
+                  />
                   <AvatarFallback className="bg-green-100 text-green-700 text-xl font-medium">
                     {initials}
                   </AvatarFallback>
@@ -152,7 +159,9 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="flex-1">
-                <div className="text-lg font-bold text-slate-800">{user.name}</div>
+                <div className="text-lg font-bold text-slate-800">
+                  {user.name}
+                </div>
                 <div className="text-sm text-slate-600">{user.email}</div>
                 <div className="mt-2 flex items-center gap-2">
                   <div className="px-3 py-1 rounded-full bg-gradient-to-r from-green-100 to-emerald-50 border border-green-300 text-xs font-medium text-green-700">
@@ -165,7 +174,9 @@ export default function ProfilePage() {
 
           {/* Settings Section */}
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-700 px-1">Settings</h2>
+            <h2 className="text-sm font-semibold text-slate-700 px-1">
+              Settings
+            </h2>
 
             {/* Notifications Toggle */}
             <button
@@ -177,12 +188,20 @@ export default function ProfilePage() {
                   <span className="text-lg">🔔</span>
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-slate-800">Notifications</div>
-                  <div className="text-xs text-slate-600">Watering reminders & alerts</div>
+                  <div className="text-sm font-semibold text-slate-800">
+                    Notifications
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    Watering reminders & alerts
+                  </div>
                 </div>
               </div>
-              <div className={`w-12 h-6 rounded-full transition-colors ${notifications ? 'bg-green-500' : 'bg-slate-300'}`}>
-                <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform mt-0.5 ${notifications ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`} />
+              <div
+                className={`w-12 h-6 rounded-full transition-colors ${notifications ? "bg-green-500" : "bg-slate-300"}`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform mt-0.5 ${notifications ? "translate-x-6 ml-0.5" : "translate-x-0.5"}`}
+                />
               </div>
             </button>
 
@@ -193,15 +212,21 @@ export default function ProfilePage() {
             >
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-pink-50 border border-purple-200 flex items-center justify-center">
-                  <span className="text-lg">{darkMode ? '🌙' : '☀️'}</span>
+                  <span className="text-lg">{darkMode ? "🌙" : "☀️"}</span>
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-slate-800">Dark Mode</div>
+                  <div className="text-sm font-semibold text-slate-800">
+                    Dark Mode
+                  </div>
                   <div className="text-xs text-slate-600">Coming soon</div>
                 </div>
               </div>
-              <div className={`w-12 h-6 rounded-full transition-colors ${darkMode ? 'bg-purple-500' : 'bg-slate-300'}`}>
-                <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform mt-0.5 ${darkMode ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`} />
+              <div
+                className={`w-12 h-6 rounded-full transition-colors ${darkMode ? "bg-purple-500" : "bg-slate-300"}`}
+              >
+                <div
+                  className={`w-5 h-5 rounded-full bg-white shadow-sm transition-transform mt-0.5 ${darkMode ? "translate-x-6 ml-0.5" : "translate-x-0.5"}`}
+                />
               </div>
             </button>
 
@@ -212,15 +237,29 @@ export default function ProfilePage() {
                   <span className="text-lg">📡</span>
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-slate-800">IoT Devices</div>
-                  <div className="text-xs text-slate-600">Manage connected sensors</div>
+                  <div className="text-sm font-semibold text-slate-800">
+                    IoT Devices
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    Manage connected sensors
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-green-500"></div>
                 <span className="text-xs text-slate-600">Coming soon</span>
-                <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-5 h-5 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </div>
             </button>
@@ -228,7 +267,9 @@ export default function ProfilePage() {
 
           {/* Account Section */}
           <div className="space-y-3">
-            <h2 className="text-sm font-semibold text-slate-700 px-1">Account</h2>
+            <h2 className="text-sm font-semibold text-slate-700 px-1">
+              Account
+            </h2>
 
             <button className="w-full bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between hover:bg-slate-50 transition-colors shadow-sm">
               <div className="flex items-center gap-3">
@@ -236,12 +277,26 @@ export default function ProfilePage() {
                   <span className="text-lg">❓</span>
                 </div>
                 <div className="text-left">
-                  <div className="text-sm font-semibold text-slate-800">Help & Support</div>
-                  <div className="text-xs text-slate-600">Get help with the app</div>
+                  <div className="text-sm font-semibold text-slate-800">
+                    Help & Support
+                  </div>
+                  <div className="text-xs text-slate-600">
+                    Get help with the app
+                  </div>
                 </div>
               </div>
-              <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                className="w-5 h-5 text-slate-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
 
@@ -264,5 +319,3 @@ export default function ProfilePage() {
     </main>
   );
 }
-
-

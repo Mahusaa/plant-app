@@ -1,6 +1,6 @@
-import { eq, and, desc } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { aiChatSessions, aiChatMessages } from "@/db/schema";
+import { aiChatMessages, aiChatSessions } from "@/db/schema";
 
 export async function getChatSessions(userId: string) {
   return db.query.aiChatSessions.findMany({
@@ -11,11 +11,16 @@ export async function getChatSessions(userId: string) {
 
 export async function getChatSessionById(sessionId: string, userId: string) {
   return db.query.aiChatSessions.findFirst({
-    where: and(eq(aiChatSessions.id, sessionId), eq(aiChatSessions.userId, userId)),
+    where: and(
+      eq(aiChatSessions.id, sessionId),
+      eq(aiChatSessions.userId, userId),
+    ),
   });
 }
 
-export async function createChatSession(data: typeof aiChatSessions.$inferInsert) {
+export async function createChatSession(
+  data: typeof aiChatSessions.$inferInsert,
+) {
   const [session] = await db.insert(aiChatSessions).values(data).returning();
   return session;
 }
@@ -23,12 +28,14 @@ export async function createChatSession(data: typeof aiChatSessions.$inferInsert
 export async function updateChatSession(
   sessionId: string,
   userId: string,
-  data: Partial<typeof aiChatSessions.$inferInsert>
+  data: Partial<typeof aiChatSessions.$inferInsert>,
 ) {
   const [updated] = await db
     .update(aiChatSessions)
     .set({ ...data, updatedAt: new Date() })
-    .where(and(eq(aiChatSessions.id, sessionId), eq(aiChatSessions.userId, userId)))
+    .where(
+      and(eq(aiChatSessions.id, sessionId), eq(aiChatSessions.userId, userId)),
+    )
     .returning();
 
   return updated;
@@ -41,7 +48,9 @@ export async function getChatMessages(sessionId: string) {
   });
 }
 
-export async function createChatMessage(data: typeof aiChatMessages.$inferInsert) {
+export async function createChatMessage(
+  data: typeof aiChatMessages.$inferInsert,
+) {
   const [message] = await db.insert(aiChatMessages).values(data).returning();
   return message;
 }
@@ -49,7 +58,9 @@ export async function createChatMessage(data: typeof aiChatMessages.$inferInsert
 export async function deleteChatSession(sessionId: string, userId: string) {
   const [deleted] = await db
     .delete(aiChatSessions)
-    .where(and(eq(aiChatSessions.id, sessionId), eq(aiChatSessions.userId, userId)))
+    .where(
+      and(eq(aiChatSessions.id, sessionId), eq(aiChatSessions.userId, userId)),
+    )
     .returning();
 
   return deleted;

@@ -44,8 +44,12 @@ export default function AnalyticsPage() {
             <span className="text-2xl">📊</span>
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">AI Analytics</h1>
-            <p className="text-sm text-slate-500">Smart insights for your plants 🤖</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+              AI Analytics
+            </h1>
+            <p className="text-sm text-slate-500">
+              Smart insights for your plants 🤖
+            </p>
           </div>
         </div>
         <p className="text-sm text-slate-600 bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-center gap-2">
@@ -56,21 +60,25 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-2 gap-4">
         {analyticsData.map((item) => (
-          <div 
-            key={item.name} 
+          <div
+            key={item.name}
             className={`rounded-2xl p-4 bg-gradient-to-br ${getColorClasses(item.color)} border shadow-sm hover:shadow-md transition-all duration-200`}
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">{item.emoji}</span>
-                <div className="text-sm font-medium text-slate-700">{item.name}</div>
+                <div className="text-sm font-medium text-slate-700">
+                  {item.name}
+                </div>
               </div>
-              <div className="text-xl font-bold text-slate-800">{item.value}%</div>
+              <div className="text-xl font-bold text-slate-800">
+                {item.value}%
+              </div>
             </div>
             <div className="w-full bg-gradient-to-r from-slate-100 to-slate-200 rounded-full h-2 overflow-hidden">
-              <div 
-                className={`h-2 bg-gradient-to-r ${getProgressColor(item.color)} rounded-full transition-all duration-500`} 
-                style={{ width: `${item.value}%` }} 
+              <div
+                className={`h-2 bg-gradient-to-r ${getProgressColor(item.color)} rounded-full transition-all duration-500`}
+                style={{ width: `${item.value}%` }}
               />
             </div>
           </div>
@@ -79,5 +87,3 @@ export default function AnalyticsPage() {
     </main>
   );
 }
-
-

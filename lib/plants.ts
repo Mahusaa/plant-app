@@ -34,7 +34,7 @@ export function getPlants(): Plant[] {
 // Get a single plant by ID
 export function getPlant(id: string): Plant | null {
   const plants = getPlants();
-  return plants.find(p => p.id === id) || null;
+  return plants.find((p) => p.id === id) || null;
 }
 
 // Add a new plant
@@ -53,9 +53,12 @@ export function addPlant(input: CreatePlantInput): Plant {
 }
 
 // Update an existing plant
-export function updatePlant(id: string, updates: Partial<CreatePlantInput>): Plant | null {
+export function updatePlant(
+  id: string,
+  updates: Partial<CreatePlantInput>,
+): Plant | null {
   const plants = getPlants();
-  const index = plants.findIndex(p => p.id === id);
+  const index = plants.findIndex((p) => p.id === id);
 
   if (index === -1) return null;
 
@@ -68,7 +71,7 @@ export function updatePlant(id: string, updates: Partial<CreatePlantInput>): Pla
 // Delete a plant
 export function deletePlant(id: string): boolean {
   const plants = getPlants();
-  const filtered = plants.filter(p => p.id !== id);
+  const filtered = plants.filter((p) => p.id !== id);
 
   if (filtered.length === plants.length) return false;
 

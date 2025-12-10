@@ -1,4 +1,4 @@
-import { eq, and, desc, gte, lte } from "drizzle-orm";
+import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { plantHealthRecords } from "@/db/schema";
 
@@ -46,7 +46,9 @@ export async function getHealthRecords(filter: HealthRecordFilter = {}) {
   });
 }
 
-export async function createHealthRecord(data: typeof plantHealthRecords.$inferInsert) {
+export async function createHealthRecord(
+  data: typeof plantHealthRecords.$inferInsert,
+) {
   const [record] = await db.insert(plantHealthRecords).values(data).returning();
   return record;
 }

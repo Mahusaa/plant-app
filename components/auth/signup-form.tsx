@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { signUp } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { signUp } from "@/lib/auth-client";
 
 export function SignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [_error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -20,12 +24,12 @@ export function SignupForm() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+      toast.error("Password must be at least 8 characters");
       return;
     }
 
@@ -38,10 +42,11 @@ export function SignupForm() {
         name,
         callbackURL: "/dashboard",
       });
+      toast.success("Account created successfully! Welcome aboard!");
       router.push("/dashboard");
       router.refresh();
     } catch (err: any) {
-      setError(err?.message || "Failed to create account");
+      toast.error(err?.message || "Failed to create account");
       console.error(err);
     } finally {
       setLoading(false);
@@ -55,18 +60,17 @@ export function SignupForm() {
           <span className="text-2xl">🌱</span>
         </div>
         <h2 className="text-2xl font-bold text-slate-800">Create an account</h2>
-        <p className="text-sm text-slate-600">Start your plant care journey today</p>
+        <p className="text-sm text-slate-600">
+          Start your plant care journey today
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl">
-            {error}
-          </div>
-        )}
-
         <div>
-          <label htmlFor="name" className="text-xs text-slate-600 font-medium mb-1 block">
+          <label
+            htmlFor="name"
+            className="text-xs text-slate-600 font-medium mb-1 block"
+          >
             Name
           </label>
           <input
@@ -83,7 +87,10 @@ export function SignupForm() {
         </div>
 
         <div>
-          <label htmlFor="email" className="text-xs text-slate-600 font-medium mb-1 block">
+          <label
+            htmlFor="email"
+            className="text-xs text-slate-600 font-medium mb-1 block"
+          >
             Email
           </label>
           <input
@@ -100,38 +107,62 @@ export function SignupForm() {
         </div>
 
         <div>
-          <label htmlFor="password" className="text-xs text-slate-600 font-medium mb-1 block">
+          <label
+            htmlFor="password"
+            className="text-xs text-slate-600 font-medium mb-1 block"
+          >
             Password
           </label>
-          <input
-            id="password"
-            type="password"
-            placeholder="At least 8 characters"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading}
-            minLength={8}
-            autoComplete="new-password"
-            className="w-full h-12 rounded-xl border border-slate-300 px-4 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="At least 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+              minLength={8}
+              autoComplete="new-password"
+              className="w-full h-12 rounded-xl border border-slate-300 px-4 pr-12 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         <div>
-          <label htmlFor="confirmPassword" className="text-xs text-slate-600 font-medium mb-1 block">
+          <label
+            htmlFor="confirmPassword"
+            className="text-xs text-slate-600 font-medium mb-1 block"
+          >
             Confirm Password
           </label>
-          <input
-            id="confirmPassword"
-            type="password"
-            placeholder="Confirm your password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            disabled={loading}
-            autoComplete="new-password"
-            className="w-full h-12 rounded-xl border border-slate-300 px-4 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-          />
+          <div className="relative">
+            <input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={loading}
+              autoComplete="new-password"
+              className="w-full h-12 rounded-xl border border-slate-300 px-4 pr-12 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
         </div>
 
         <Button
@@ -144,12 +175,18 @@ export function SignupForm() {
       </form>
 
       <div className="flex items-center justify-between text-sm">
-        <Link href="/" className="text-slate-600 hover:text-green-600 font-medium">
+        <Link
+          href="/"
+          className="text-slate-600 hover:text-green-600 font-medium"
+        >
           ← Back
         </Link>
         <div className="text-slate-600">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-green-600 hover:text-green-700">
+          <Link
+            href="/login"
+            className="font-medium text-green-600 hover:text-green-700"
+          >
             Sign in
           </Link>
         </div>

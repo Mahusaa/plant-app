@@ -1,7 +1,7 @@
-import { getPlantWithFirebaseData } from "@/db/queries/plants";
 import { notFound } from "next/navigation";
-import { PlantDetailWrapper } from "./plant-detail-wrapper";
+import { getPlantWithFirebaseData } from "@/db/queries/plants";
 import type { PlantData } from "./page";
+import { PlantDetailWrapper } from "./plant-detail-wrapper";
 
 interface PlantDetailContentProps {
   plantId: string;
@@ -9,7 +9,11 @@ interface PlantDetailContentProps {
 }
 
 // Mock data generator for daily data (last 30 days)
-function generateDailyData(baseValue: number, variance: number, days: number = 30) {
+function generateDailyData(
+  baseValue: number,
+  variance: number,
+  days: number = 30,
+) {
   const now = new Date();
   const data = [];
 
@@ -31,7 +35,10 @@ function generateDailyData(baseValue: number, variance: number, days: number = 3
   return data;
 }
 
-export default async function PlantDetailContent({ plantId, userId }: PlantDetailContentProps) {
+export default async function PlantDetailContent({
+  plantId,
+  userId,
+}: PlantDetailContentProps) {
   // Fetch plant with Firebase data
   const plantData = await getPlantWithFirebaseData(plantId, userId);
 

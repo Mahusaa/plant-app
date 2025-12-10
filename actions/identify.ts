@@ -1,11 +1,10 @@
 "use server";
 
-import { generateObject } from "ai";
 import { openai } from "@ai-sdk/openai";
-import { IdentifySchema, type IdentifyResult } from "@/lib/ai-schema";
+import { generateObject } from "ai";
+import { type IdentifyResult, IdentifySchema } from "@/lib/ai-schema";
 
 // Structured output schema for plant identification
-
 
 export async function identifyPlantAction({
   imageBase64,

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
 export type ToastVariant = "default" | "destructive";
 
@@ -14,19 +14,22 @@ let toastCount = 0;
 export function useToast() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const toast = useCallback(({ title, description, variant = "default" }: Omit<Toast, "id">) => {
-    const id = `toast-${toastCount++}`;
-    const newToast: Toast = { id, title, description, variant };
+  const toast = useCallback(
+    ({ title, description, variant = "default" }: Omit<Toast, "id">) => {
+      const id = `toast-${toastCount++}`;
+      const newToast: Toast = { id, title, description, variant };
 
-    setToasts((prevToasts) => [...prevToasts, newToast]);
+      setToasts((prevToasts) => [...prevToasts, newToast]);
 
-    // Auto dismiss after 5 seconds
-    setTimeout(() => {
-      setToasts((prevToasts) => prevToasts.filter((t) => t.id !== id));
-    }, 5000);
+      // Auto dismiss after 5 seconds
+      setTimeout(() => {
+        setToasts((prevToasts) => prevToasts.filter((t) => t.id !== id));
+      }, 5000);
 
-    return id;
-  }, []);
+      return id;
+    },
+    [],
+  );
 
   const dismiss = useCallback((toastId: string) => {
     setToasts((prevToasts) => prevToasts.filter((t) => t.id !== toastId));

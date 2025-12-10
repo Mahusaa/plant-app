@@ -1,10 +1,10 @@
 // app/plants/[id]/page.tsx (Server Component)
+
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { PlantDetailWrapper } from "./plant-detail-wrapper";
 import type { IdentifyResult } from "@/lib/ai-schema";
 import { auth } from "@/lib/auth";
-import { redirect, notFound } from "next/navigation";
-import { headers } from "next/headers";
 import PlantDetailContent from "./plant-detail-content";
 import { PlantDetailSkeleton } from "./plant-detail-skeleton";
 
@@ -38,7 +38,11 @@ export type DailyDataPoint = {
 };
 
 // Mock data generator for daily data (last 30 days)
-function generateDailyData(baseValue: number, variance: number, days: number = 30): DailyDataPoint[] {
+function _generateDailyData(
+  baseValue: number,
+  variance: number,
+  days: number = 30,
+): DailyDataPoint[] {
   const now = new Date();
   const data: DailyDataPoint[] = [];
 
@@ -61,7 +65,7 @@ function generateDailyData(baseValue: number, variance: number, days: number = 3
 }
 
 // Convert care requirements from DB to IdentifyResult format
-function buildIdentifyDataFromCareRequirements(plant: any): IdentifyResult {
+function _buildIdentifyDataFromCareRequirements(plant: any): IdentifyResult {
   const care = plant.careRequirements;
 
   if (!care) {
@@ -104,24 +108,33 @@ function buildIdentifyDataFromCareRequirements(plant: any): IdentifyResult {
       frequencyDays: care.wateringFrequencyDays || 7,
       notes: care.wateringNotes ? JSON.parse(care.wateringNotes) : [],
     },
-    temperatureRange: care.temperatureMin && care.temperatureMax ? {
-      min: care.temperatureMin,
-      max: care.temperatureMax,
-      ideal: care.temperatureIdeal,
-    } : undefined,
-    humidityRange: care.humidityMin && care.humidityMax ? {
-      min: care.humidityMin,
-      max: care.humidityMax,
-      ideal: care.humidityIdeal,
-    } : undefined,
+    temperatureRange:
+      care.temperatureMin && care.temperatureMax
+        ? {
+            min: care.temperatureMin,
+            max: care.temperatureMax,
+            ideal: care.temperatureIdeal,
+          }
+        : undefined,
+    humidityRange:
+      care.humidityMin && care.humidityMax
+        ? {
+            min: care.humidityMin,
+            max: care.humidityMax,
+            ideal: care.humidityIdeal,
+          }
+        : undefined,
     careNotes: care.careNotes ? JSON.parse(care.careNotes) : [],
     healthIssues: care.healthIssues ? JSON.parse(care.healthIssues) : [],
     growthRate: care.growthRate as any,
     maxHeight: care.maxHeight,
-    toxicity: care.isToxic !== null ? {
-      toxic: care.isToxic,
-      notes: care.toxicityNotes,
-    } : undefined,
+    toxicity:
+      care.isToxic !== null
+        ? {
+            toxic: care.isToxic,
+            notes: care.toxicityNotes,
+          }
+        : undefined,
   };
 }
 
@@ -129,7 +142,9 @@ interface PlantDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function PlantDetailPage({ params }: PlantDetailPageProps) {
+export default async function PlantDetailPage({
+  params,
+}: PlantDetailPageProps) {
   const { id } = await params;
 
   // Get authenticated user with Better Auth

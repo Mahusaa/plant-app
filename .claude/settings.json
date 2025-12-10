@@ -37,8 +37,6 @@
     ]
   },
   "permissions": {
-    "allow": [
-      "Bash:powershell"
-    ]
+    "allow": ["Bash:powershell"]
   }
 }

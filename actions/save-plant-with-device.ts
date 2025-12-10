@@ -1,15 +1,15 @@
 "use server";
 
+import { and, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { revalidatePath } from "next/cache";
-import type { IdentifyResult } from "@/lib/ai-schema";
 import { db } from "@/db";
-import { plants, plantIdentifications } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { plantIdentifications, plants } from "@/db/schema";
+import type { IdentifyResult } from "@/lib/ai-schema";
 import {
+  updateDeviceMetadata,
   validateDeviceExists,
   writeDeviceThresholds,
-  updateDeviceMetadata,
 } from "@/lib/firebase-device";
 import type { ThresholdPlan } from "@/types/iot";
 
@@ -39,10 +39,17 @@ export interface SavePlantResult {
  * 6. Save identification record (history)
  */
 export async function savePlantWithDevice(
-  input: SavePlantInput
+  input: SavePlantInput,
 ): Promise<SavePlantResult> {
   try {
-    const { userId, plantName, roomLocation, deviceId, imageUrl, identifyResult } = input;
+    const {
+      userId,
+      plantName,
+      roomLocation,
+      deviceId,
+      imageUrl,
+      identifyResult,
+    } = input;
 
     // Step 1: Validate device exists in Firebase
     const deviceExists = await validateDeviceExists(deviceId);
@@ -57,14 +64,15 @@ export async function savePlantWithDevice(
     const existingPlant = await db.query.plants.findFirst({
       where: and(
         eq(plants.firebaseDeviceId, deviceId),
-        eq(plants.userId, userId)
+        eq(plants.userId, userId),
       ),
     });
 
     if (existingPlant) {
       return {
         success: false,
-        error: "This device is already assigned to another plant. Each device can only be used once.",
+        error:
+          "This device is already assigned to another plant. Each device can only be used once.",
       };
     }
 
@@ -72,14 +80,21 @@ export async function savePlantWithDevice(
     const enhancedThresholdPlan: ThresholdPlan = {
       ...identifyResult,
       // Extract numeric thresholds for IoT device control
-      lux: identifyResult.lightRequirements.ideal || identifyResult.lightRequirements.max,
-      soil_moisture: identifyResult.soilMoistureRequirements.ideal || identifyResult.soilMoistureRequirements.max,
+      lux:
+        identifyResult.lightRequirements.ideal ||
+        identifyResult.lightRequirements.max,
+      soil_moisture:
+        identifyResult.soilMoistureRequirements.ideal ||
+        identifyResult.soilMoistureRequirements.max,
       water_level: identifyResult.waterLevelRequirements.min,
       temperature: identifyResult.temperatureRange?.ideal,
       humidity: identifyResult.humidityRange?.ideal,
     };
 
-    const thresholdsWritten = await writeDeviceThresholds(deviceId, enhancedThresholdPlan);
+    const thresholdsWritten = await writeDeviceThresholds(
+      deviceId,
+      enhancedThresholdPlan,
+    );
     if (!thresholdsWritten) {
       return {
         success: false,

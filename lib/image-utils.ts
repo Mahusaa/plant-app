@@ -25,7 +25,7 @@ function createImage(url: string): Promise<HTMLImageElement> {
  */
 export async function getCroppedImg(
   imageSrc: string,
-  pixelCrop: CropArea
+  pixelCrop: CropArea,
 ): Promise<Blob> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -49,7 +49,7 @@ export async function getCroppedImg(
     0,
     0,
     pixelCrop.width,
-    pixelCrop.height
+    pixelCrop.height,
   );
 
   // Return as blob
@@ -73,7 +73,7 @@ export async function compressImage(
     maxSizeMB?: number;
     maxWidthOrHeight?: number;
     quality?: number;
-  }
+  },
 ): Promise<File> {
   const defaultOptions = {
     maxSizeMB: 0.95, // Target slightly under 1MB to be safe
@@ -86,11 +86,15 @@ export async function compressImage(
 
   try {
     // Convert Blob to File if needed
-    const fileToCompress = file instanceof File
-      ? file
-      : new File([file], "image.jpg", { type: "image/jpeg" });
+    const fileToCompress =
+      file instanceof File
+        ? file
+        : new File([file], "image.jpg", { type: "image/jpeg" });
 
-    const compressedFile = await imageCompression(fileToCompress, compressionOptions);
+    const compressedFile = await imageCompression(
+      fileToCompress,
+      compressionOptions,
+    );
     return compressedFile;
   } catch (error) {
     console.error("Error compressing image:", error);
@@ -104,7 +108,7 @@ export async function compressImage(
  */
 export async function getCroppedAndCompressedImage(
   imageSrc: string,
-  pixelCrop: CropArea
+  pixelCrop: CropArea,
 ): Promise<{ dataUrl: string; size: number }> {
   // Step 1: Crop the image
   const croppedBlob = await getCroppedImg(imageSrc, pixelCrop);

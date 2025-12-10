@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { getPlants } from "@/db/queries/plants";
 import { Button } from "@/components/ui/button";
+import { getPlants } from "@/db/queries/plants";
+import { toIndonesiaTime } from "@/lib/time-utils";
 
 interface PlantsContentProps {
   userId: string;
@@ -17,13 +18,15 @@ export default async function PlantsContent({ userId }: PlantsContentProps) {
           <span className="text-4xl">🌱</span>
         </div>
         <div className="text-center space-y-2">
-          <h2 className="text-lg font-semibold text-slate-700">No plants yet</h2>
-          <p className="text-sm text-slate-500">Scan your first plant to get started!</p>
+          <h2 className="text-lg font-semibold text-slate-700">
+            No plants yet
+          </h2>
+          <p className="text-sm text-slate-500">
+            Scan your first plant to get started!
+          </p>
         </div>
         <Link href="/identify">
-          <Button
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg"
-          >
+          <Button className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold shadow-lg">
             <span className="mr-2">📷</span>
             Identify Your First Plant
           </Button>
@@ -64,17 +67,37 @@ export default async function PlantsContent({ userId }: PlantsContentProps) {
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <svg className="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-3 h-3 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               <div className="text-xs text-slate-500">
-                Added {plant.createdAt.toLocaleDateString()}
+                Added {toIndonesiaTime(plant.createdAt).date}
               </div>
             </div>
           </div>
           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-            <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-5 h-5 text-slate-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </div>
         </Link>

@@ -1,12 +1,11 @@
-import { eq, and, desc, asc, ilike, gte, lte, sql, or } from "drizzle-orm";
+import { and, asc, desc, eq, ilike } from "drizzle-orm";
 import { db } from "@/db";
-import { plants, plantHealthRecords } from "@/db/schema";
+import { plants } from "@/db/schema";
 import {
-  getDeviceThresholdPlan,
   getDeviceMetadata,
+  getDeviceThresholdPlan,
   getLatestSensorReading as getFirebaseLatestReading,
 } from "@/lib/firebase-device";
-import type { IdentifyResult } from "@/lib/ai-schema";
 
 export type PlantFilter = {
   userId?: string;
@@ -22,7 +21,10 @@ export type PlantSort = {
   direction?: "asc" | "desc";
 };
 
-export async function getPlants(filter: PlantFilter = {}, sort: PlantSort = {}) {
+export async function getPlants(
+  filter: PlantFilter = {},
+  sort: PlantSort = {},
+) {
   const conditions = [];
 
   if (filter.userId) {
@@ -46,11 +48,15 @@ export async function getPlants(filter: PlantFilter = {}, sort: PlantSort = {}) 
     return [];
   }
 
-  const sortField = sort.field === "name" || sort.field === "createdAt" || sort.field === "updatedAt"
-    ? sort.field
-    : "createdAt";
+  const sortField =
+    sort.field === "name" ||
+    sort.field === "createdAt" ||
+    sort.field === "updatedAt"
+      ? sort.field
+      : "createdAt";
   const sortDirection = sort.direction || "desc";
-  const orderBy = sortDirection === "asc" ? asc(plants[sortField]) : desc(plants[sortField]);
+  const orderBy =
+    sortDirection === "asc" ? asc(plants[sortField]) : desc(plants[sortField]);
 
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -79,7 +85,10 @@ export async function getPlantById(plantId: string, userId?: string) {
  * Get plant with complete data from Firebase (Firebase-first architecture)
  * Combines PostgreSQL plant record with Firebase device data
  */
-export async function getPlantWithFirebaseData(plantId: string, userId?: string) {
+export async function getPlantWithFirebaseData(
+  plantId: string,
+  userId?: string,
+) {
   // 1. Get plant from PostgreSQL (basic info only)
   const conditions = [eq(plants.id, plantId)];
   if (userId) {
@@ -96,7 +105,9 @@ export async function getPlantWithFirebaseData(plantId: string, userId?: string)
     // 2. Fetch live data from Firebase progressively (sequential loading)
     const thresholdPlan = await getDeviceThresholdPlan(plant.firebaseDeviceId);
     const metadata = await getDeviceMetadata(plant.firebaseDeviceId);
-    const latestReading = await getFirebaseLatestReading(plant.firebaseDeviceId);
+    const latestReading = await getFirebaseLatestReading(
+      plant.firebaseDeviceId,
+    );
 
     return {
       // PostgreSQL data
@@ -111,13 +122,15 @@ export async function getPlantWithFirebaseData(plantId: string, userId?: string)
       // Firebase data
       identifyData: thresholdPlan,
       imageUrl: metadata?.imageUrl || null,
-      currentSensorData: latestReading ? {
-        waterLevel: latestReading.level_air,
-        lightIntensity: latestReading.intensitas_cahaya,
-        soilMoisture: latestReading.kelembapan_tanah,
-        timestamp: new Date(latestReading.timestamp),
-      } : null,
-      status: 'unknown',
+      currentSensorData: latestReading
+        ? {
+            waterLevel: latestReading.level_air,
+            lightIntensity: latestReading.intensitas_cahaya,
+            soilMoisture: latestReading.kelembapan_tanah,
+            timestamp: new Date(latestReading.timestamp),
+          }
+        : null,
+      status: "unknown",
     };
   } catch (error) {
     console.error(`Error fetching Firebase data for plant ${plantId}:`, error);
@@ -127,7 +140,7 @@ export async function getPlantWithFirebaseData(plantId: string, userId?: string)
       identifyData: null,
       imageUrl: null,
       currentSensorData: null,
-      status: 'unknown',
+      status: "unknown",
     };
   }
 }
@@ -152,7 +165,11 @@ export async function createPlant(data: typeof plants.$inferInsert) {
   return plant;
 }
 
-export async function updatePlant(plantId: string, userId: string, data: Partial<typeof plants.$inferInsert>) {
+export async function updatePlant(
+  plantId: string,
+  userId: string,
+  data: Partial<typeof plants.$inferInsert>,
+) {
   const [updated] = await db
     .update(plants)
     .set({ ...data, updatedAt: new Date() })

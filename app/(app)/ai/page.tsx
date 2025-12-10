@@ -6,7 +6,11 @@ export default function AIPage() {
       <h1 className="text-xl font-semibold">AI Dashboard</h1>
       <div className="grid gap-3">
         {[1, 2, 3].map((id) => (
-          <Link key={id} href={`/ai/${id}`} className="rounded-xl border p-4 bg-card shadow-sm">
+          <Link
+            key={id}
+            href={`/ai/${id}`}
+            className="rounded-xl border p-4 bg-card shadow-sm"
+          >
             <div className="font-medium">Daisy #{id}</div>
             <div className="text-sm text-muted-foreground">Tap to ask AI</div>
           </Link>
@@ -15,5 +19,3 @@ export default function AIPage() {
     </main>
   );
 }
-
-

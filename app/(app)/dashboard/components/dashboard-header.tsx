@@ -1,12 +1,14 @@
-import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
 import DashboardHeaderClient from "./dashboard-header-client";
 
 interface DashboardHeaderProps {
   userId: string;
 }
 
-export default async function DashboardHeader({ userId }: DashboardHeaderProps) {
+export default async function DashboardHeader({
+  userId,
+}: DashboardHeaderProps) {
   // Fetch user session data
   const headersList = await headers();
   const session = await auth.api.getSession({

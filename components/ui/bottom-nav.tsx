@@ -1,8 +1,8 @@
 "use client";
 
+import { Bot, Grid2X2, History, List, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Grid2X2, History, List, User } from "lucide-react";
 
 const items = [
   { href: "/dashboard", icon: Grid2X2, emoji: "🏠" },
@@ -13,7 +13,8 @@ const items = [
 ];
 
 const getColorClasses = (active: boolean) => {
-  const baseClasses = "h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-105";
+  const baseClasses =
+    "h-12 w-12 rounded-2xl flex items-center justify-center transition-all duration-300 transform hover:scale-105";
 
   if (active) {
     return `${baseClasses} bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-xl`;
@@ -46,5 +47,3 @@ export default function BottomNav() {
     </nav>
   );
 }
-
-

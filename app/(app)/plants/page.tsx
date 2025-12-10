@@ -1,9 +1,9 @@
-import { Suspense } from "react";
-import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
 import PlantsContent from "./plants-content";
 import { PlantsPageSkeleton } from "./plants-skeleton";
 
@@ -27,8 +27,12 @@ export default async function PlantsPage() {
               <span className="text-2xl">🌱</span>
             </div>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-800">My Plants</h1>
-              <p className="text-sm text-slate-500">Manage your plant collection 🌿</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+                My Plants
+              </h1>
+              <p className="text-sm text-slate-500">
+                Manage your plant collection 🌿
+              </p>
             </div>
           </div>
           <Link href="/identify">

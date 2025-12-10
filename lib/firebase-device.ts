@@ -1,7 +1,12 @@
-import { database } from "@/lib/firebase";
-import { ref, get, set, update } from "firebase/database";
-import type { DeviceData, ThresholdPlan, SensorReading, DeviceMetadata } from "@/types/iot";
+import { get, ref, set, update } from "firebase/database";
 import type { IdentifyResult } from "@/lib/ai-schema";
+import { database } from "@/lib/firebase";
+import type {
+  DeviceData,
+  DeviceMetadata,
+  SensorReading,
+  ThresholdPlan,
+} from "@/types/iot";
 
 /**
  * Validates if a device exists in Firebase
@@ -20,7 +25,9 @@ export async function validateDeviceExists(deviceId: string): Promise<boolean> {
 /**
  * Gets device data from Firebase
  */
-export async function getDeviceData(deviceId: string): Promise<DeviceData | null> {
+export async function getDeviceData(
+  deviceId: string,
+): Promise<DeviceData | null> {
   try {
     const deviceRef = ref(database, `devices/${deviceId}`);
     const snapshot = await get(deviceRef);
@@ -40,7 +47,7 @@ export async function getDeviceData(deviceId: string): Promise<DeviceData | null
  */
 export async function writeDeviceThresholds(
   deviceId: string,
-  thresholds: ThresholdPlan
+  thresholds: ThresholdPlan,
 ): Promise<boolean> {
   try {
     const thresholdRef = ref(database, `devices/${deviceId}/threshold_plan`);
@@ -55,7 +62,9 @@ export async function writeDeviceThresholds(
 /**
  * Gets device thresholds from Firebase
  */
-export async function getDeviceThresholds(deviceId: string): Promise<ThresholdPlan | null> {
+export async function getDeviceThresholds(
+  deviceId: string,
+): Promise<ThresholdPlan | null> {
   try {
     const thresholdRef = ref(database, `devices/${deviceId}/threshold_plan`);
     const snapshot = await get(thresholdRef);
@@ -74,14 +83,18 @@ export async function getDeviceThresholds(deviceId: string): Promise<ThresholdPl
  * Gets complete device threshold plan (including AI-generated care data)
  * Alias for getDeviceThresholds with IdentifyResult return type
  */
-export async function getDeviceThresholdPlan(deviceId: string): Promise<IdentifyResult | null> {
+export async function getDeviceThresholdPlan(
+  deviceId: string,
+): Promise<IdentifyResult | null> {
   return getDeviceThresholds(deviceId);
 }
 
 /**
  * Gets device metadata from Firebase
  */
-export async function getDeviceMetadata(deviceId: string): Promise<DeviceMetadata | null> {
+export async function getDeviceMetadata(
+  deviceId: string,
+): Promise<DeviceMetadata | null> {
   try {
     const metadataRef = ref(database, `devices/${deviceId}/metadata`);
     const snapshot = await get(metadataRef);
@@ -108,7 +121,7 @@ export async function getLatestSensorReading(deviceId: string) {
       const readings = snapshot.val() as Record<string, SensorReading>;
       // Sort by timestamp value, not the key
       const sortedReadings = Object.entries(readings).sort(
-        ([, a], [, b]) => b.timestamp - a.timestamp
+        ([, a], [, b]) => b.timestamp - a.timestamp,
       );
       if (sortedReadings.length > 0) {
         return sortedReadings[0][1]; // Return the reading with latest timestamp
@@ -126,7 +139,7 @@ export async function getLatestSensorReading(deviceId: string) {
  */
 export async function updateDeviceMetadata(
   deviceId: string,
-  metadata: Partial<DeviceMetadata>
+  metadata: Partial<DeviceMetadata>,
 ): Promise<boolean> {
   try {
     const metadataRef = ref(database, `devices/${deviceId}/metadata`);

@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { addPlant } from "@/lib/plants";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { addPlant } from "@/lib/plants";
 
 export default function AddPlantPage() {
   const router = useRouter();
@@ -37,16 +37,16 @@ export default function AddPlantPage() {
     try {
       const newPlant = addPlant(formData);
       router.push(`/plants/${newPlant.id}`);
-    } catch (error) {
+    } catch (_error) {
       alert("Failed to add plant. Please try again.");
       setIsSubmitting(false);
     }
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -58,8 +58,12 @@ export default function AddPlantPage() {
             <span className="text-2xl">🌱</span>
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">Add New Plant</h1>
-            <p className="text-sm text-slate-500">Add a plant to your collection</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+              Add New Plant
+            </h1>
+            <p className="text-sm text-slate-500">
+              Add a plant to your collection
+            </p>
           </div>
         </div>
       </header>
@@ -67,7 +71,10 @@ export default function AddPlantPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Plant Name */}
         <div className="space-y-2">
-          <label htmlFor="name" className="text-sm font-semibold text-slate-700">
+          <label
+            htmlFor="name"
+            className="text-sm font-semibold text-slate-700"
+          >
             Plant Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -84,7 +91,10 @@ export default function AddPlantPage() {
 
         {/* Species */}
         <div className="space-y-2">
-          <label htmlFor="species" className="text-sm font-semibold text-slate-700">
+          <label
+            htmlFor="species"
+            className="text-sm font-semibold text-slate-700"
+          >
             Species <span className="text-red-500">*</span>
           </label>
           <input
@@ -96,12 +106,17 @@ export default function AddPlantPage() {
             className={`w-full h-12 rounded-xl border ${errors.species ? "border-red-500" : "border-slate-300"} px-4 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm`}
             data-testid="plant-species-input"
           />
-          {errors.species && <p className="text-sm text-red-500">{errors.species}</p>}
+          {errors.species && (
+            <p className="text-sm text-red-500">{errors.species}</p>
+          )}
         </div>
 
         {/* Location */}
         <div className="space-y-2">
-          <label htmlFor="location" className="text-sm font-semibold text-slate-700">
+          <label
+            htmlFor="location"
+            className="text-sm font-semibold text-slate-700"
+          >
             Location <span className="text-red-500">*</span>
           </label>
           <input
@@ -113,12 +128,17 @@ export default function AddPlantPage() {
             className={`w-full h-12 rounded-xl border ${errors.location ? "border-red-500" : "border-slate-300"} px-4 bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm`}
             data-testid="plant-location-input"
           />
-          {errors.location && <p className="text-sm text-red-500">{errors.location}</p>}
+          {errors.location && (
+            <p className="text-sm text-red-500">{errors.location}</p>
+          )}
         </div>
 
         {/* Notes */}
         <div className="space-y-2">
-          <label htmlFor="notes" className="text-sm font-semibold text-slate-700">
+          <label
+            htmlFor="notes"
+            className="text-sm font-semibold text-slate-700"
+          >
             Notes (Optional)
           </label>
           <textarea

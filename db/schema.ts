@@ -1,6 +1,5 @@
-import { text, integer, timestamp, real, boolean } from "drizzle-orm/pg-core";
+import { boolean, integer, real, text, timestamp } from "drizzle-orm/pg-core";
 import { createTable } from "./table-creator";
-
 
 // Better Auth tables - using the standard Better Auth schema
 export const user = createTable("user", {
@@ -21,14 +20,18 @@ export const session = createTable("session", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
 });
 
 export const account = createTable("account", {
   id: text("id").primaryKey().notNull(),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
@@ -62,7 +65,9 @@ export type NewAccount = typeof account.$inferInsert;
 // AI Chat tables
 export const aiChatSessions = createTable("ai_chat_sessions", {
   id: text("id").primaryKey().notNull(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   title: text("title"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -70,7 +75,9 @@ export const aiChatSessions = createTable("ai_chat_sessions", {
 
 export const aiChatMessages = createTable("ai_chat_messages", {
   id: text("id").primaryKey().notNull(),
-  sessionId: text("session_id").notNull().references(() => aiChatSessions.id, { onDelete: "cascade" }),
+  sessionId: text("session_id")
+    .notNull()
+    .references(() => aiChatSessions.id, { onDelete: "cascade" }),
   role: text("role").notNull(), // 'user' or 'assistant'
   content: text("content").notNull(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -86,7 +93,9 @@ export type NewAiChatMessage = typeof aiChatMessages.$inferInsert;
 // Plant metadata stored in Firebase; PostgreSQL stores only user plant list
 export const plants = createTable("plants", {
   id: text("id").primaryKey().notNull(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   name: text("name").notNull(), // User-assigned plant name
   firebaseDeviceId: text("firebase_device_id").notNull().unique(), // Firebase IoT device ID (required)
   roomLocation: text("room_location"), // Room location (e.g., "Living Room")
@@ -97,8 +106,12 @@ export const plants = createTable("plants", {
 // Plant identification history (all plant scans/identifications)
 export const plantIdentifications = createTable("plant_identifications", {
   id: text("id").primaryKey().notNull(),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
-  plantId: text("plant_id").references(() => plants.id, { onDelete: "set null" }), // Nullable - not all identifications become plants
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  plantId: text("plant_id").references(() => plants.id, {
+    onDelete: "set null",
+  }), // Nullable - not all identifications become plants
   imageUrl: text("image_url").notNull(), // Captured plant image
   speciesName: text("species_name").notNull(), // AI result: scientific name
   commonName: text("common_name").notNull(), // AI result: common name
@@ -110,8 +123,12 @@ export const plantIdentifications = createTable("plant_identifications", {
 // Watering event logs
 export const wateringLogs = createTable("watering_logs", {
   id: text("id").primaryKey().notNull(),
-  plantId: text("plant_id").notNull().references(() => plants.id, { onDelete: "cascade" }),
-  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  plantId: text("plant_id")
+    .notNull()
+    .references(() => plants.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
   amountMl: integer("amount_ml").notNull(), // Water amount in milliliters
   method: text("method").notNull(), // 'manual' | 'automatic' | 'pump'
   notes: text("notes"), // Optional user notes
@@ -121,7 +138,9 @@ export const wateringLogs = createTable("watering_logs", {
 
 export const plantHealthRecords = createTable("plant_health_records", {
   id: text("id").primaryKey().notNull(),
-  plantId: text("plant_id").notNull().references(() => plants.id, { onDelete: "cascade" }),
+  plantId: text("plant_id")
+    .notNull()
+    .references(() => plants.id, { onDelete: "cascade" }),
   status: text("status").notNull(), // 'healthy' | 'warning' | 'critical' | 'unknown'
   healthScore: real("health_score"), // 0-100
   lightIntensity: real("light_intensity"), // lux
@@ -145,4 +164,3 @@ export type NewWateringLog = typeof wateringLogs.$inferInsert;
 
 export type PlantHealthRecord = typeof plantHealthRecords.$inferSelect;
 export type NewPlantHealthRecord = typeof plantHealthRecords.$inferInsert;
-

@@ -14,9 +14,12 @@ export default function Home() {
           <span className="text-5xl">🌿</span>
         </div>
         <div className="space-y-2">
-          <h1 className="text-5xl font-bold text-slate-800 [font-family:var(--font-instrument-serif)]">Plant Care</h1>
+          <h1 className="text-5xl font-bold text-slate-800 [font-family:var(--font-instrument-serif)]">
+            Plant Care
+          </h1>
           <p className="text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
-            Keep your plants healthy with smart IoT monitoring and AI-powered insights.
+            Keep your plants healthy with smart IoT monitoring and AI-powered
+            insights.
           </p>
         </div>
 
@@ -47,7 +50,10 @@ export default function Home() {
 
       <div className="text-xs text-slate-500">
         Already have an account?{" "}
-        <Link href="/login" className="text-green-600 font-medium hover:underline">
+        <Link
+          href="/login"
+          className="text-green-600 font-medium hover:underline"
+        >
           Sign in
         </Link>
       </div>
