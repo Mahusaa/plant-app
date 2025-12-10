@@ -37,7 +37,7 @@ export function getRelativeTime(
 }
 
 /**
- * Convert timestamp to Indonesia timezone (WIB - UTC+7)
+ * Convert timestamp to UTC-7 timezone
  * Returns formatted time string with timezone
  */
 export function toIndonesiaTime(timestamp: Date | number | null | undefined): {
@@ -50,41 +50,41 @@ export function toIndonesiaTime(timestamp: Date | number | null | undefined): {
     return {
       time: "No data",
       date: "No data",
-      timezone: "WIB (UTC+7)",
+      timezone: "UTC-7",
       delta: "Unknown",
     };
   }
 
   const date = typeof timestamp === "number" ? new Date(timestamp) : timestamp;
 
-  // Convert to Indonesia timezone (WIB = UTC+7)
-  const wibTime = new Date(
+  // Convert to UTC-7 timezone (Mountain Standard Time / Pacific Daylight Time)
+  const utcMinus7Time = new Date(
     date.toLocaleString("en-US", {
-      timeZone: "Asia/Jakarta",
+      timeZone: "America/Phoenix",
     }),
   );
 
   // Calculate timezone delta from local
   const localOffset = date.getTimezoneOffset(); // in minutes
-  const wibOffset = -420; // WIB is UTC+7 (7 * 60 = 420 minutes ahead of UTC, negative because getTimezoneOffset returns negative for ahead)
-  const deltaMinutes = localOffset - wibOffset;
+  const utcMinus7Offset = 420; // UTC-7 is 7 hours behind UTC (7 * 60 = 420 minutes behind UTC)
+  const deltaMinutes = localOffset - utcMinus7Offset;
   const deltaHours = Math.abs(deltaMinutes) / 60;
   const deltaSign = deltaMinutes > 0 ? "+" : "-";
 
   return {
-    time: wibTime.toLocaleTimeString("en-US", {
+    time: utcMinus7Time.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
       hour12: false,
     }),
-    date: wibTime.toLocaleDateString("en-US", {
+    date: utcMinus7Time.toLocaleDateString("en-US", {
       weekday: "short",
       year: "numeric",
       month: "short",
       day: "numeric",
     }),
-    timezone: "WIB (UTC+7)",
+    timezone: "UTC-7",
     delta:
       deltaHours !== 0
         ? `${deltaSign}${deltaHours}h from your time`

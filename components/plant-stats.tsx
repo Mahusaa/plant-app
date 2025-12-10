@@ -295,9 +295,9 @@ export function PlantStatsClient({
                         fontSize={10}
                         tickFormatter={(value) => {
                           const date = new Date(value);
-                          // Add 7 hours for Indonesian timezone (WIB - UTC+7)
+                          // Subtract 7 hours for UTC-7 timezone
                           const wibDate = new Date(
-                            date.getTime() + 7 * 60 * 60 * 1000,
+                            date.getTime() - 7 * 60 * 60 * 1000,
                           );
                           switch (timeRange) {
                             case "day":
@@ -332,14 +332,14 @@ export function PlantStatsClient({
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             const date = new Date(label);
-                            // Add 7 hours for Indonesian timezone (WIB - UTC+7)
+                            // Subtract 7 hours for UTC-7 timezone
                             const wibDate = new Date(
-                              date.getTime() + 7 * 60 * 60 * 1000,
+                              date.getTime() - 7 * 60 * 60 * 1000,
                             );
                             return (
                               <div className="bg-white p-3 border rounded-lg shadow-lg">
                                 <p className="text-xs sm:text-sm font-medium">
-                                  {wibDate.toLocaleString()} WIB
+                                  {wibDate.toLocaleString()} UTC-7
                                 </p>
                                 <p className="text-base sm:text-lg font-bold text-green-600">
                                   {payload[0].value}

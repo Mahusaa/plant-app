@@ -227,8 +227,8 @@ export function PlantDetailClient({
               : NaN;
         const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
 
-        // Add 7 hours for Indonesian timezone (WIB - UTC+7)
-        const wibTimestamp = point.timestamp + 7 * 60 * 60 * 1000;
+        // Subtract 7 hours for UTC-7 timezone
+        const wibTimestamp = point.timestamp - 7 * 60 * 60 * 1000;
         const wibDate = new Date(wibTimestamp);
 
         return {
@@ -236,7 +236,7 @@ export function PlantDetailClient({
             month: "short",
             day: "numeric",
           }),
-          time: point.time, // This is already formatted in WIB from firebase-iot.ts
+          time: point.time, // This is already formatted in UTC-7 from firebase-iot.ts
           value: safeValue,
           fullDate: wibDate.toLocaleDateString(),
           timestamp: wibTimestamp,
@@ -265,8 +265,8 @@ export function PlantDetailClient({
         return diffDays <= daysToShow;
       })
       .map((point) => {
-        // Add 7 hours for Indonesian timezone (WIB - UTC+7)
-        const wibTimestamp = point.date.getTime() + 7 * 60 * 60 * 1000;
+        // Subtract 7 hours for UTC-7 timezone
+        const wibTimestamp = point.date.getTime() - 7 * 60 * 60 * 1000;
         const wibDate = new Date(wibTimestamp);
 
         return {
@@ -355,7 +355,7 @@ export function PlantDetailClient({
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-blue-600 font-medium">WIB</p>
+            <p className="text-[10px] text-blue-600 font-medium">UTC-7</p>
             <p className="text-xs text-blue-900 font-semibold">
               {indonesiaTime.time}
             </p>
@@ -839,11 +839,11 @@ export function PlantDetailClient({
               </p>
             </div>
 
-            {/* Indonesia Time (WIB) */}
+            {/* UTC-7 Time */}
             <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-blue-600 font-medium">
-                  Indonesia Time
+                  Current Time
                 </p>
                 <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
                   {indonesiaTime.timezone}
